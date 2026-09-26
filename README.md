@@ -1,149 +1,141 @@
-# WARDOGS — Υπολογιστής Όλμου · Mortar Calculator
+# WARDOGS — Mortar Calculator
 
-Ανεπίσημο εργαλείο για τον **όλμο στο WARDOGS**: δίνεις τις συντεταγμένες X/Y από τον χάρτη και σου βγάζει
-**απόσταση σε μέτρα** και **διόπτευση**, με την ίδια ορολογία που δείχνει το παιχνίδι.
+Unofficial tool for the **WARDOGS mortar**: enter the X/Y coordinates you read off the game map and get the
+**distance in metres** and the **bearing**, using the exact terms the game shows you.
 
-> **Φτιαγμένο από IcarusGR.** Ερασιτεχνικό εργαλείο, μοιρασμένο δωρεάν στην κοινότητα.
+> **Made by IcarusGR.** Hobby project, shared with the community for free.
 
-![Ο υπολογιστής στα ελληνικά](docs/screenshot-greek.png)
+![The calculator](docs/screenshot-english.png)
 
-- **Ένα αρχείο HTML** — καμία εγκατάσταση, κανένας server, **δουλεύει offline**
-- **7 γλώσσες**: English · Ελληνικά · Français · Deutsch · Русский · Español · Italiano
-- Ακρίβεια σε **δύο άξονες** (διαγώνια), όχι μόνο σε έναν
-- **1 μονάδα συντεταγμένης = 100 μέτρα**
-
----
-
-## Πώς να το κατεβάσεις και να το ανοίξεις
-
-**Τρόπος 1 — κατέβασε μόνο το αρχείο (ο πιο απλός)**
-
-1. Πάτα πάνω στο αρχείο **[`wardogs-mortar-calc.html`](wardogs-mortar-calc.html)**.
-2. Πάνω δεξιά πάτα το κουμπί **`Download raw file`** (βελάκι με γραμμή). Κατεβαίνει ένα αρχείο ~80 KB.
-3. Κάνε **διπλό κλικ** στο κατεβασμένο αρχείο. Ανοίγει στον browser σου (Chrome, Edge, Firefox, Brave).
-4. Τέλος. Δεν χρειάζεται internet, λογαριασμός, εγκατάσταση ή άδεια.
-
-**Τρόπος 2 — όλο το repo σε ZIP**
-
-1. Πράσινο κουμπί **`Code`** → **`Download ZIP`**.
-2. Κάνε extract το ZIP.
-3. Διπλό κλικ στο `wardogs-mortar-calc.html`.
-
-**Τρόπος 3 — από τα Releases (κατευθείαν λήψη)**
-
-Πήγαινε στα **[Releases](../../releases)** → κατέβασε το `wardogs-mortar-calc.html`.
-
-**Σε κινητό / tablet:** κατέβασε το αρχείο, μετά άνοιξέ το από τον file manager («Άνοιγμα με → Chrome»).
-Το εργαλείο έχει στηθεί να δουλεύει και σε μικρή οθόνη.
+- **One HTML file** — no installation, no server, **works offline**
+- **7 languages**: English · Ελληνικά · Français · Deutsch · Русский · Español · Italiano
+- Correct on **both axes** (diagonal), not just one
+- **1 map unit = 100 metres**
 
 ---
 
-## Πώς το χρησιμοποιείς
+## Download and open it
 
-1. Άνοιξε τον χάρτη στο παιχνίδι. Θυμήσου: **πρώτα το X και μετά το Y** — όπως ακριβώς σου τα δίνει το παιχνίδι.
-2. Στο **«Εγώ (ο όλμος)»** γράψε το **X** και το **Y** της θέσης σου.
-3. Στο **«Ο στόχος»** γράψε το **X** και το **Y** του στόχου.
-4. Το αποτέλεσμα βγαίνει **ζωντανά**, χωρίς κουμπί υπολογισμού:
+**Option 1 — grab the single file (simplest)**
 
-| Ένδειξη | Τι σημαίνει |
+1. Click **[`wardogs-mortar-calc.html`](wardogs-mortar-calc.html)**.
+2. Click **`Download raw file`** (top right). You get one file, roughly 80 KB.
+3. **Double-click** the downloaded file. It opens in your browser (Chrome, Edge, Firefox, Brave).
+4. That's it. No internet, no account, no installation, no permissions.
+
+**Option 2 — the whole repo as ZIP**
+
+1. Green **`Code`** button → **`Download ZIP`**.
+2. Extract the ZIP.
+3. Double-click `wardogs-mortar-calc.html`.
+
+**Option 3 — from Releases (direct download)**
+
+Go to **[Releases](../../releases)** → download `wardogs-mortar-calc.html`.
+
+**Option 4 — Nexus Mods**
+
+The same tool is published as a mod page:
+**[WARDOGS - Mortar Calculator on Nexus Mods](https://www.nexusmods.com/wardogs/mods/9)**.
+
+**On a phone or tablet:** download the file, then open it from your file manager (*Open with → Chrome*).
+The layout is built to work on a small screen.
+
+---
+
+## How to use it
+
+1. Open the map in game. Remember: the game lists **X first, then Y**.
+2. Under **"Me (the mortar)"** type the **X** and **Y** of your position.
+3. Under **"The target"** type the **X** and **Y** of the target.
+4. The result updates **live** — there is no calculate button:
+
+| Reading | What it means |
 |---|---|
-| **Απόσταση** (`401 m`) | Αυτό το νούμερο βάζεις στο **RNG** του όλμου |
-| **Διόπτευση** (`325,5° NW (ΒΔ)`) | Πού γυρίζεις — με τα αρχικά που δείχνει το map |
-| **MILS** (`5786 mil`) | Ανύψωση κάννης σε μίλα |
-| **Δ Ανατολή (X)** / **Δ Βορρά (Y)** | Πόσο διαφέρει κάθε άξονας χωριστά |
+| **Distance** (`401 m`) | This is the number you dial into the mortar's **RNG** |
+| **Bearing** (`325.5° NW`) | Where to point — the same initials the map uses |
+| **MILS** (`5786 mil`) | Barrel elevation in mils |
+| **Δ East (X)** / **Δ North (Y)** | How far apart the two positions are on each axis |
 
-**Κόλπα που θα σου γλυτώσουν χρόνο**
+**Shortcuts that save time**
 
-- **Επικόλληση**: αντέγραψε τις συντεταγμένες όπως τις βρήκες (`x= 79.44 y= 66.80`, ή σκέτο `79.44 66.80`),
-  κόλλησέ τες στο κουτί κάτω και πάτα **«Στα δικά μου»** ή **«Στον στόχο»**.
-  Αν τις κόλλησες κατά λάθος ανάποδα (Y πρώτα), το εργαλείο το καταλαβαίνει και τις διορθώνει μόνο του.
-- **Αντιστροφή X ↔ Y**: αν πάντα μπερδεύεσαι με τη σειρά, πάτα αυτό το κουμπί.
-- **Αντιγραφή λύσης**: αντιγράφει απόσταση + διόπτευση έτοιμα για paste σε Discord/chat.
-- Δέχεται **κόμμα ή τελεία** στο δεκαδικό: `79,44` και `79.44` είναι το ίδιο.
-- Η γλώσσα που διαλέγεις (πάνω δεξιά, με σημαιάκι) **θυμάται** την επόμενη φορά.
+- **Paste**: copy the coordinates exactly as you found them (`x= 79.44 y= 66.80`, or plain `79.44 66.80`),
+  paste them into the box at the bottom and hit **To my position** or **To the target**.
+  If you pasted them the wrong way round (Y first), the tool notices and fixes the order itself.
+- **Swap X ↔ Y**: one click, for when the order keeps tripping you up.
+- **Copy solution**: copies distance + bearing, ready to paste into Discord or chat.
+- Accepts a **comma or a dot** as the decimal separator: `79,44` and `79.44` are the same thing.
+- Your chosen language (top right, flag button) is **remembered** for next time.
 
 ---
 
-## Πώς βγαίνουν τα μέτρα
+## Where the metres come from
 
 ```
-απόσταση(m) = 100 × √( ΔX² + ΔY² )
-ΔX = X στόχου − X δική μου
-ΔY = Y στόχου − Y δική μου
+distance(m) = 100 × √( ΔX² + ΔY² )
+ΔX = target X − my X
+ΔY = target Y − my Y
 ```
 
-Στον χάρτη του WARDOGS **1 ολόκληρη μονάδα συντεταγμένης = 100 μέτρα**, δηλαδή το τελευταίο δεκαδικό ψηφίο
-(0,01) είναι **1 μέτρο**. Το `(77,94 − 77,17)` είναι 0,77 μονάδες = **77 μέτρα** στον άξονα X.
+On the WARDOGS map **1 full coordinate unit = 100 metres**, so the last decimal place (0.01) is **1 metre**.
+`(77.94 − 77.17)` is 0.77 units = **77 metres** on the X axis.
 
-Ο υπολογισμός είναι διαγώνιος (Πυθαγόρας) — αν κοιτάς μόνο τον έναν άξονα, χάνεις μέτρα.
+The maths is diagonal (Pythagoras) — if you only look at one axis, you lose metres.
 
-## Πυξίδα — ίδια γλώσσα με το map
+## Compass — the same language as the map
 
-8 τομείς × 45°. Το εργαλείο δείχνει **αγγλικά αρχικά** (όπως το παιχνίδι) και **τη γλώσσα σου σε παρένθεση**,
-πουθενά δεν «μεταφράζει» αυθαίρετα:
+8 sectors × 45°. The tool shows the **English initials** (as the game does) with **your language in brackets**;
+nothing is translated arbitrarily:
 
-| Τομέας | Μοίρες | Καινούριος |
+| Sector | Degrees | Heading |
 |---|---|---|
-| **N** (Β) | 337,5° – 22,5° | 0° |
-| **NE** (ΒΑ) | 22,5° – 67,5° | 45° |
-| **E** (Α) | 67,5° – 112,5° | 90° |
-| **SE** (ΝΑ) | 112,5° – 157,5° | 135° |
-| **S** (Ν) | 157,5° – 202,5° | 180° |
-| **SW** (ΝΔ) | 202,5° – 247,5° | 225° |
-| **W** (Δ) | 247,5° – 292,5° | 270° |
-| **NW** (ΒΔ) | 292,5° – 337,5° | 315° |
+| **N** | 337.5° – 22.5° | 0° |
+| **NE** | 22.5° – 67.5° | 45° |
+| **E** | 67.5° – 112.5° | 90° |
+| **SE** | 112.5° – 157.5° | 135° |
+| **S** | 157.5° – 202.5° | 180° |
+| **SW** | 202.5° – 247.5° | 225° |
+| **W** | 247.5° – 292.5° | 270° |
+| **NW** | 292.5° – 337.5° | 315° |
 
-## Γλώσσες
+## Languages
 
-Πάνω δεξιά, κουμπί με σημαιάκι → μενού με 7 γλώσσες. **Βασική σελίδα = αγγλικά**· η επιλογή σου αποθηκεύεται
-στη συσκευή σου (localStorage) και ισχύει στην επόμενη επίσκεψη.
+Top right, the flag button → menu with 7 languages. **Default page = English**; your choice is stored on your
+device (localStorage) and applies on your next visit.
 
-![Μενού γλωσσών](docs/languages.png)
+![Language menu](docs/languages.png)
 
-## Πόσο ακριβές είναι
+## How accurate is it
 
-Ο υπολογισμός αποστάσεων είναι **μαθηματικά ακριβής** (12 δεκαδικά, χωρίς στρογγυλοποίηση ενδιάμεσα).
-Στην πράξη, το τι θα χτυπήσεις το ορίζει η **διασπορά** του όλμου (~50 MOA): ±2 m στα 132 m, ±10 m στα 684 m.
-Άρα η πρώτη βολή είναι **βολή διόρθωσης** — μέτρα το σφάλμα και ξαναρίξε.
+The distance maths is **exactly right** (12 decimals, no intermediate rounding).
+In practice, what you hit is decided by the mortar's **dispersion** (~50 MOA): ±2 m at 132 m, ±10 m at 684 m.
+So your first round is a **ranging shot** — measure the miss and fire again.
 
-Εμβέλειες: **L81** (κινητός όλμος) 132–684 m · **SPH-2** 780–2629 m. Το εργαλείο σου δείχνει σήμανση όταν
-η απόσταση βγει έξω από την εμβέλεια του L81.
-
----
-
-## English (quick start)
-
-**What it is:** an unofficial mortar distance & bearing calculator for **WARDOGS**. Enter your X/Y and the
-target's X/Y from the map, get the **distance in metres** and the **azimuth** exactly the way the game shows it.
-
-**Made by IcarusGR.**
-
-1. Open **[`wardogs-mortar-calc.html`](wardogs-mortar-calc.html)** → click **`Download raw file`**.
-2. Double-click the downloaded file — it opens in your browser. No install, no internet, no account.
-3. Type your **X** and **Y** (the game writes **X first, then Y**), then the target's X/Y.
-4. Read: **distance** → put it in your mortar's **RNG**; **azimuth** (`325.5° NW`) → where to turn; **MILS** → elevation.
-
-`distance(m) = 100 × √(ΔX² + ΔY²)` — **1 coordinate unit = 100 m** (so the second decimal = 1 m).
-Available in 7 languages (switch with the flag button, top right). The maths is exact; real-world accuracy is
-dominated by the mortar's dispersion, so treat the first round as a ranging shot.
+Ranges: **L81** (mobile mortar) 132–684 m · **SPH-2** 780–2629 m. The tool flags the result when the distance
+falls outside the L81 range.
 
 ---
 
-## Άδεια χρήσης · License
+## License
 
-**Creative Commons Attribution-NoDerivatives 4.0 International (CC BY-ND 4.0)** — δες το αρχείο [`LICENSE`](LICENSE).
+**Creative Commons Attribution-NoDerivatives 4.0 International (CC BY-ND 4.0)** — see the [`LICENSE`](LICENSE) file.
 
-Με απλά λόγια:
+In plain words:
 
-- ✅ **Μπορείς να το χρησιμοποιήσεις** ελεύθερα, όσες φορές θέλεις, και να το μοιραστείς με άλλους —
-  αρκεί να αναφέρεις τον δημιουργό (**IcarusGR**) και να μη βγάλεις το όνομά του από το εργαλείο.
-- ✅ Μπορείς να βάλεις το αρχείο στον server/στο Discord/σε οδηγό σου, να το δώσεις σε φίλους, να το ανεβάσεις σε άλλο site.
-- ❌ **Δεν επιτρέπεται να το τροποποιήσεις** ή να διανείμεις αλλαγμένες/παράγωγες εκδόσεις (π.χ. «δικό μου version»,
-  αλλαγμένος κώδικας, κομμάτια του μέσα σε άλλο εργαλείο).
-- ❌ Δεν επιτρέπεται να αφαιρέσεις ή να αλλάξεις το όνομα/τα credits του δημιουργού.
+- ✅ **You may use it** freely, as often as you like, and share it with others — as long as you credit the
+  author (**IcarusGR**) and leave his name inside the tool.
+- ✅ You may host the file, put it in your Discord, use it in your own guide, hand it to friends, upload it
+  elsewhere.
+- ❌ **You may not modify it** or distribute changed/derivative versions (a "my own version", edited code,
+  or parts of it inside another tool).
+- ❌ You may not remove or change the author's name or credits.
 
-Το εργαλείο είναι **ανεπίσημο** και **δεν σχετίζεται** με τη BULKHEAD ή τους δημιουργούς του WARDOGS.
-Δεν υπάρχει καμία εγγύηση — χρησιμοποίησέ το όπως είναι.
+This tool is **unofficial** and **not affiliated** with BULKHEAD or the creators of WARDOGS.
+There is no warranty of any kind — use it as it is.
 
-Έχεις ερώτηση, βρήκες λάθος, ή θέλεις να προτείνεις κάτι;
-Άνοιξε **[Issue](../../issues)** — οι προτάσεις είναι ευπρόσδεκτες (η αλλαγή του κώδικα παραμένει στον δημιουργό).
+Got a question, found a bug, or want to suggest something?
+Open an **[Issue](../../issues)** — suggestions are welcome (changes to the code stay with the author).
+
+---
+
+<sub>Greek version of this page: [docs/README.el.md](docs/README.el.md)</sub>
