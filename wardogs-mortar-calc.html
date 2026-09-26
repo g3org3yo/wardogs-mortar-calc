@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WARDOGS — Mortar Distance Calculator</title>
+<style>
+  :root{
+    --bg:#0e1215;
+    --panel:#161c21;
+    --panel-2:#1b2329;
+    --line:#2b363d;
+    --line-2:#3b4a53;
+    --ink:#e9eff2;
+    --muted:#93a3ab;
+    --dim:#6c7c84;
+    --accent:#d9a441;
+    --accent-dim:#8a6a2b;
+    --ok:#5fbf7a;
+    --warn:#e0713f;
+    --bad:#e0553f;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono","Cascadia Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Segoe UI",Roboto,system-ui,-apple-system,sans-serif;
+    font-size:15px;
+    line-height:1.45;
+    padding:18px;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+
+  header{border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-start;justify-content:space-between}
+  h1{font-size:17px;margin:0;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+  h1 span{color:var(--accent)}
+  .by{font-size:12.5px;color:var(--muted);margin-top:3px;letter-spacing:.02em}
+  .by b{color:var(--accent);font-weight:600;letter-spacing:.06em}
+  .hdr-right{display:flex;flex-direction:column;align-items:flex-end;gap:7px;margin-left:auto}
+  .sub{color:var(--muted);font-size:12.5px;letter-spacing:.02em;text-align:right}
+  .sub b{color:var(--ink);font-weight:600}
+
+  /* ---- language selector ---- */
+  .lang{position:relative}
+  #langBtn{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;min-height:36px;padding:7px 11px}
+  #langBtn .code{color:var(--ink)}
+  #langBtn .chev{color:var(--dim);font-size:10px}
+  #langBtn[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}
+  .lang-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:212px;background:var(--panel-2);border:1px solid var(--line-2);border-radius:3px;padding:4px;display:grid;gap:2px;box-shadow:0 12px 28px #000a}
+  .lang-menu[hidden]{display:none}
+  .lang-menu button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;border:0;background:transparent;padding:8px 9px;min-height:34px;font-size:13px;letter-spacing:0}
+  .lang-menu button:hover{background:#20292f;color:var(--accent)}
+  .lang-menu button .nm{flex:1;color:var(--ink)}
+  .lang-menu button:hover .nm{color:var(--accent)}
+  .lang-menu button .cd{font-family:var(--mono);font-size:11px;color:var(--dim)}
+  .lang-menu button[aria-selected="true"]{background:#1d262b}
+  .lang-menu button[aria-selected="true"] .nm{color:var(--accent)}
+  /* σημαιάκια ζωγραφισμένα με CSS — τα emoji flags δεν εμφανίζονται στα Windows */
+  .fl{width:21px;height:14px;flex:none;border:1px solid #0007;box-shadow:inset 0 0 0 1px #ffffff14;position:relative;display:inline-block}
+  .fl-en{background:
+      linear-gradient(90deg,transparent 42%,#C8102E 42% 58%,transparent 58%),
+      linear-gradient(180deg,transparent 36%,#C8102E 36% 64%,transparent 64%),
+      linear-gradient(90deg,transparent 34%,#fff 34% 66%,transparent 66%),
+      linear-gradient(180deg,transparent 28%,#fff 28% 72%,transparent 72%),
+      #012169}
+  .fl-el{background:repeating-linear-gradient(180deg,#0D5EAF 0 11.11%,#fff 11.11% 22.22%)}
+  .fl-el::before{content:"";position:absolute;left:0;top:0;width:37%;height:55.5%;background:#0D5EAF}
+  .fl-el::after{content:"";position:absolute;left:13%;top:0;width:11%;height:55.5%;background:#fff}
+  .fl-fr{background:linear-gradient(90deg,#0055A4 33.3%,#fff 33.3% 66.6%,#EF4135 66.6%)}
+  .fl-it{background:linear-gradient(90deg,#008C45 33.3%,#F4F5F0 33.3% 66.6%,#CD212A 66.6%)}
+  .fl-de{background:linear-gradient(180deg,#000 33.3%,#DD0000 33.3% 66.6%,#FFCE00 66.6%)}
+  .fl-ru{background:linear-gradient(180deg,#fff 33.3%,#0039A6 33.3% 66.6%,#D52B1E 66.6%)}
+  .fl-es{background:linear-gradient(180deg,#AA151B 25%,#F1BF00 25% 75%,#AA151B 75%)}
+
+  .grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:16px;align-items:start}
+  @media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:14px}
+  .card + .card{margin-top:14px}
+  .card h2{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 12px;font-weight:600}
+
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .pair > *{min-width:0}
+  .field label{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+  .field input{
+    width:100%;
+    min-width:0;
+    max-width:100%;
+    background:var(--panel-2);
+    border:1px solid var(--line-2);
+    border-radius:2px;
+    color:var(--ink);
+    font-family:var(--mono);
+    font-size:21px;
+    font-variant-numeric:tabular-nums;
+    padding:9px 10px;
+    letter-spacing:.02em;
+  }
+  .field input:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent)}
+  .field input::placeholder{color:#4d5b62}
+
+  .who{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .dot{width:9px;height:9px;border-radius:50%;flex:none}
+  .dot.me{background:var(--ok)}
+  .dot.tg{background:var(--bad)}
+
+  .tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  button{
+    font:inherit;font-size:12.5px;letter-spacing:.03em;
+    background:var(--panel-2);color:var(--ink);
+    border:1px solid var(--line-2);border-radius:2px;
+    padding:8px 12px;min-height:38px;cursor:pointer;
+  }
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button:active{transform:translateY(1px)}
+  button.ghost{color:var(--muted)}
+
+  .paste{margin-top:12px}
+  .paste label{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+  .paste textarea{
+    width:100%;min-width:0;max-width:100%;min-height:58px;resize:vertical;
+    background:var(--panel-2);border:1px solid var(--line-2);border-radius:2px;
+    color:var(--ink);font-family:var(--mono);font-size:12.5px;padding:8px 10px;
+  }
+  .paste textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+  .paste .hint{font-size:11.5px;color:var(--dim);margin-top:5px}
+
+  /* ---- solution ---- */
+  .dist{display:flex;align-items:flex-end;gap:10px}
+  .dist .n{
+    font-family:var(--mono);font-size:64px;line-height:.9;font-weight:600;
+    font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--accent);
+  }
+  .dist .u{font-family:var(--mono);font-size:20px;color:var(--accent-dim);padding-bottom:6px}
+  .exact{font-family:var(--mono);font-size:12.5px;color:var(--dim);margin-top:6px}
+  .lbl.out{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+  .badge{display:inline-block;font-size:12px;padding:4px 9px;border-radius:2px;border:1px solid;margin-top:11px}
+  .badge.ok{color:var(--ok);border-color:#2f5c3c;background:#12211a}
+  .badge.warn{color:var(--warn);border-color:#5c3a26;background:#21150f}
+  .badge.bad{color:var(--bad);border-color:#5c2a26;background:#210f0e}
+
+  .bear{display:flex;align-items:center;gap:14px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+  .bear .val{font-family:var(--mono);font-size:27px;font-variant-numeric:tabular-nums}
+  .bear .lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+  .bear .card2{font-size:13px;color:var(--muted)}
+  #rose{flex:none}
+  #rose .lat{font-family:var(--mono);font-size:8.5px;fill:var(--dim)}
+  #rose .lat.on{fill:#d9a441;font-weight:700}
+
+  .rows{margin-top:16px;padding-top:12px;border-top:1px solid var(--line);display:grid;gap:7px}
+  .row{display:flex;justify-content:space-between;gap:12px;font-size:13.5px;align-items:baseline}
+  .row .k{color:var(--muted)}
+  .row .v{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .row .v.mut{color:var(--dim)}
+  .sect{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+  .sect .cap{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:7px}
+
+  /* ---- map ---- */
+  .mapwrap{position:relative;background:#0a0e11;border:1px solid var(--line);border-radius:3px;overflow:hidden}
+  canvas{display:block;width:100%;height:400px}
+  @media (max-width:900px){canvas{height:330px}}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;padding:9px 11px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted);background:var(--panel)}
+  .legend i{display:inline-block;width:16px;height:0;border-top-width:2px;border-top-style:solid;vertical-align:middle;margin-right:6px}
+  .legend .sq{width:9px;height:9px;border:1px solid;border-radius:1px;display:inline-block;margin-right:6px;vertical-align:middle}
+
+  @media (max-width:420px){
+    body{padding:12px}
+    .card{padding:12px}
+    .dist .n{font-size:52px}
+    .row{font-size:12.5px}
+    .tools button{flex:1 1 auto}
+    .hdr-right{align-items:flex-start;margin-left:0}
+    .sub{text-align:left}
+  }
+
+  details{margin-top:14px;border:1px solid var(--line);border-radius:3px;background:var(--panel)}
+  summary{cursor:pointer;padding:11px 14px;font-size:12.5px;letter-spacing:.04em;color:var(--muted)}
+  summary:hover{color:var(--accent)}
+  details .body{padding:0 14px 14px;font-size:13.5px;color:var(--muted);max-width:90ch}
+  details .body p{margin:9px 0}
+  details .body b{color:var(--ink);font-weight:600}
+  details .body code{font-family:var(--mono);font-size:12.5px;color:var(--accent);background:#1d252b;padding:1px 5px;border-radius:2px}
+  details ul{margin:9px 0;padding-left:20px}
+  details li{margin:5px 0}
+  .foot{margin-top:16px;font-size:11.5px;color:var(--dim);text-align:left}
+  .foot b{color:var(--muted);letter-spacing:.06em}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="brand">
+    <h1>WARDOGS · <span data-i18n="title">Mortar Calculator</span></h1>
+    <div class="by"><span data-i18n="byline">Fan-made tool by</span> <b>IcarusGR</b></div>
+  </div>
+  <div class="hdr-right">
+    <div class="lang">
+      <button id="langBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Language / Γλώσσα">
+        <span id="flNow" class="fl fl-en"></span><span class="code" id="langNow">EN</span><span class="chev">▾</span>
+      </button>
+      <div class="lang-menu" id="langMenu" role="listbox" hidden>
+        <button role="option" data-lang="en"><span class="fl fl-en"></span><span class="nm">English</span><span class="cd">en</span></button>
+        <button role="option" data-lang="el"><span class="fl fl-el"></span><span class="nm">Ελληνικά</span><span class="cd">el</span></button>
+        <button role="option" data-lang="fr"><span class="fl fl-fr"></span><span class="nm">Français</span><span class="cd">fr</span></button>
+        <button role="option" data-lang="de"><span class="fl fl-de"></span><span class="nm">Deutsch</span><span class="cd">de</span></button>
+        <button role="option" data-lang="ru"><span class="fl fl-ru"></span><span class="nm">Русский</span><span class="cd">ru</span></button>
+        <button role="option" data-lang="es"><span class="fl fl-es"></span><span class="nm">Español</span><span class="cd">es</span></button>
+        <button role="option" data-lang="it"><span class="fl fl-it"></span><span class="nm">Italiano</span><span class="cd">it</span></button>
+      </div>
+    </div>
+    <div class="sub" data-i18n-html="scaleNote">1 map unit = <b>100 m</b> · updates live</div>
+  </div>
+</header>
+
+<div class="grid">
+  <!-- ================= ΑΡΙΣΤΕΡΗ ΣΤΗΛΗ ================= -->
+  <div>
+    <div class="card">
+      <h2 data-i18n="cardMap">Data from the map</h2>
+
+      <div class="who"><span class="dot me"></span><span data-i18n="meLabel">ME (the mortar)</span></div>
+      <div class="pair">
+        <div class="field">
+          <label data-i18n="xLabel">X — East (right) · 1st</label>
+          <input id="gx" type="text" inputmode="decimal" autocomplete="off" placeholder="79.44">
+        </div>
+        <div class="field">
+          <label data-i18n="yLabel">Y — North (up) · 2nd</label>
+          <input id="gy" type="text" inputmode="decimal" autocomplete="off" placeholder="66.80">
+        </div>
+      </div>
+
+      <div class="who" style="margin-top:18px"><span class="dot tg"></span><span data-i18n="targetLabel">THE TARGET</span></div>
+      <div class="pair">
+        <div class="field">
+          <label data-i18n="xLabel2">X — East (right) · 1st</label>
+          <input id="tx" type="text" inputmode="decimal" autocomplete="off" placeholder="77.17">
+        </div>
+        <div class="field">
+          <label data-i18n="yLabel2">Y — North (up) · 2nd</label>
+          <input id="ty" type="text" inputmode="decimal" autocomplete="off" placeholder="70.10">
+        </div>
+      </div>
+
+      <div class="tools">
+        <button id="swap" data-i18n-title="swapTitle" data-i18n="swap">Swap X ↔ Y</button>
+        <button id="copy" data-i18n="copy">Copy solution</button>
+        <button id="clear" class="ghost" data-i18n="clear">Reset</button>
+      </div>
+
+      <div class="paste">
+        <label data-i18n="pasteLabel">Paste coordinates (optional)</label>
+        <textarea id="paster" placeholder="e.g.  y= 70.10  x= 77.17&#10;or  70.10 77.17&#10;or  70.10, 77.17"></textarea>
+        <div class="hint" id="pmsg" data-i18n="pasteHint">Accepts comma or dot as decimal separator. First pair = mine, second pair = target.</div>
+        <div class="tools" style="margin-top:9px">
+          <button id="pme" data-i18n="toMe">→ Mine</button>
+          <button id="ptg" data-i18n="toTarget">→ Target</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="cardSolution">Fire solution</h2>
+
+      <div class="lbl out" style="margin-bottom:7px" data-i18n="distLabel">Distance — put this number in the mortar's RNG</div>
+      <div class="dist">
+        <div class="n" id="distN">—</div>
+        <div class="u">m</div>
+      </div>
+      <div class="exact" id="distExact" data-i18n="distEmpty">fill in all four fields</div>
+      <div id="rangeBadge"></div>
+
+      <div class="bear">
+        <svg id="rose" width="86" height="86" viewBox="-43 -43 86 86" aria-hidden="true">
+          <circle r="28" fill="none" stroke="#3b4a53" stroke-width="1"></circle>
+          <circle r="28" fill="none" stroke="#d9a441" stroke-width="2" id="arc" transform="rotate(-90)" stroke-dasharray="0 999"></circle>
+          <text id="latN" class="lat" x="0" y="-30.5" text-anchor="middle">N</text>
+          <text id="latNE" class="lat" x="21.2" y="-17.7" text-anchor="middle">NE</text>
+          <text id="latE" class="lat" x="30" y="3.5" text-anchor="middle">E</text>
+          <text id="latSE" class="lat" x="21.2" y="24.7" text-anchor="middle">SE</text>
+          <text id="latS" class="lat" x="0" y="33.5" text-anchor="middle">S</text>
+          <text id="latSW" class="lat" x="-21.2" y="24.7" text-anchor="middle">SW</text>
+          <text id="latW" class="lat" x="-30" y="3.5" text-anchor="middle">W</text>
+          <text id="latNW" class="lat" x="-21.2" y="-17.7" text-anchor="middle">NW</text>
+          <g id="needle" transform="rotate(0)">
+            <polygon points="0,-21 5,8 0,4 -5,8" fill="#d9a441"></polygon>
+          </g>
+          <circle r="2" fill="#0e1215" stroke="#d9a441" stroke-width="1"></circle>
+        </svg>
+        <div>
+          <div class="lbl" data-i18n="bearLabel">Bearing — same notation as the map</div>
+          <div class="val" id="bearDeg">—</div>
+          <div class="card2" id="bearCard" data-i18n="bearInit">0° = N · 90° = E — same sectors as the map</div>
+        </div>
+      </div>
+
+      <div class="rows">
+        <div class="row"><span class="k" data-i18n="rowDX">Δ East (X)</span><span class="v" id="dX">—</span></div>
+        <div class="row"><span class="k" data-i18n="rowDY">Δ North (Y)</span><span class="v" id="dY">—</span></div>
+        <div class="row"><span class="k" data-i18n="rowMil">Azimuth in mils (6400)</span><span class="v mut" id="mil">—</span></div>
+      </div>
+
+      <div class="sect">
+        <div class="cap" data-i18n="sectCap">The simple way (one axis)</div>
+        <div class="rows" style="border:0;padding:0;margin:0">
+          <div class="row"><span class="k" data-i18n="onlyXk">X axis only × 100</span><span class="v" id="onlyX">—</span></div>
+          <div class="row"><span class="k" data-i18n="onlyYk">Y axis only × 100</span><span class="v" id="onlyY">—</span></div>
+          <div class="row"><span class="k" data-i18n="diagk">True (diagonal)</span><span class="v" id="diag">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= ΔΕΞΙΑ ΣΤΗΛΗ ================= -->
+  <div>
+    <div class="mapwrap">
+      <canvas id="map"></canvas>
+      <div class="legend">
+        <span><i style="border-color:#5fbf7a"></i><span data-i18n="legendMe">Me</span></span>
+        <span><i style="border-color:#e0553f"></i><span data-i18n="legendTarget">Target</span></span>
+        <span><span class="sq" style="border-color:#2b363d;background:#131a1f"></span><span data-i18n="legendGrid">100 m grid</span></span>
+        <span><i style="border-color:#5c3a26;border-top-style:dashed"></i><span data-i18n="legendRange">L81 range: 132 m / 684 m</span></span>
+      </div>
+    </div>
+
+    <details open>
+      <summary data-i18n="docsTitle">How the metres are worked out — and how accurate they are</summary>
+      <div class="body" id="docsBody" data-i18n-html="docs"></div>
+    </details>
+
+    <div class="foot" data-i18n-html="footNote">Local file, runs offline in your browser. Values are stored only on your device.</div>
+  </div>
+</div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var UNIT = 100;                     // 1 μονάδα συντεταγμένης = 100 m
+  var MIN_RNG = 132, MAX_RNG = 684;   // κοινοτικός πίνακας L81
+  var KEY = "wardogs-mortar-calc-v1";
+  var LKEY = "wardogs-mortar-calc-lang";
+
+  var el = function(id){ return document.getElementById(id); };
+  var ids = ["gy","gx","ty","tx"];
+  var inputs = { gy:el("gy"), gx:el("gx"), ty:el("ty"), tx:el("tx") };
+  var last = null;
+  var L = "en";                       // βασική γλώσσα: αγγλικά
+
+  /* ---------- πυξίδα: 8 τομείς των 45°, όπως το map του WARDOGS ----------
+     Κύριο όνομα ΠΑΝΤΑ αγγλικά (έτσι το δείχνει το παιχνίδι) και σε παρένθεση
+     η γλώσσα του χρήστη: 276,1°  W (Δ)  ·  όρια N 337,5°–22,5° … */
+  var SECTORS = [
+    { en:"N",  c:0   },
+    { en:"NE", c:45  },
+    { en:"E",  c:90  },
+    { en:"SE", c:135 },
+    { en:"S",  c:180 },
+    { en:"SW", c:225 },
+    { en:"W",  c:270 },
+    { en:"NW", c:315 }
+  ];
+  var COMPASS = {
+    en:{N:"N",NE:"NE",E:"E",SE:"SE",S:"S",SW:"SW",W:"W",NW:"NW"},
+    el:{N:"Β",NE:"ΒΑ",E:"Α",SE:"ΝΑ",S:"Ν",SW:"ΝΔ",W:"Δ",NW:"ΒΔ"},
+    fr:{N:"N",NE:"NE",E:"E",SE:"SE",S:"S",SW:"SO",W:"O",NW:"NO"},
+    de:{N:"N",NE:"NO",E:"O",SE:"SO",S:"S",SW:"SW",W:"W",NW:"NW"},
+    ru:{N:"С",NE:"СВ",E:"В",SE:"ЮВ",S:"Ю",SW:"ЮЗ",W:"З",NW:"СЗ"},
+    es:{N:"N",NE:"NE",E:"E",SE:"SE",S:"S",SW:"SO",W:"O",NW:"NO"},
+    it:{N:"N",NE:"NE",E:"E",SE:"SE",S:"S",SW:"SO",W:"O",NW:"NO"}
+  };
+  var LOC = { en:"en-GB", el:"el-GR", fr:"fr-FR", de:"de-DE", ru:"ru-RU", es:"es-ES", it:"it-IT" };
+
+  /* ---------- κείμενα (i18n) ---------- */
+  var I18N = {
+    en: {
+      pageTitle:"WARDOGS — Mortar Distance Calculator",
+      title:"Mortar Calculator",
+      byline:"Fan-made tool by",
+      scaleNote:"1 map unit = <b>100 m</b> · updates live",
+      cardMap:"Data from the map",
+      meLabel:"ME (the mortar)",
+      targetLabel:"THE TARGET",
+      yLabel:"Y — North (up) · 2nd",
+      xLabel:"X — East (right) · 1st",
+      yLabel2:"Y — North (up) · 2nd",
+      xLabel2:"X — East (right) · 1st",
+      swap:"Swap X ↔ Y",
+      swapTitle:"Use it if you typed or pasted them the other way round (Y first)",
+      copy:"Copy solution",
+      copied:"Copied ✓",
+      clear:"Reset",
+      pasteLabel:"Paste coordinates (optional)",
+      pasteHint:"Accepts comma or dot as decimal separator. First pair = mine, second pair = target. Inside each pair the order is X then Y, exactly like the game.",
+      pastePlaceholder:"e.g.  x= 79.44  y= 66.80\nor  79.44 66.80\nor  79.44, 66.80",
+      toMe:"→ Mine",
+      toTarget:"→ Target",
+      cardSolution:"Fire solution",
+      distLabel:"Distance — put this number in the mortar's RNG",
+      distEmpty:"fill in all four fields",
+      exact:"exactly {d} m  ·  {u} map units",
+      badgeNear:"TOO CLOSE — below 132 m the L81 has no solution",
+      badgeFar:"BEYOND RANGE — 684 m is the L81 maximum (~700 m limit)",
+      badgeOk:"WITHIN L81 RANGE (132–684 m)",
+      bearLabel:"Bearing — same notation as the map",
+      bearInit:"0° = N · 90° = E — same sectors as the map",
+      bearCard:"On the map: sector {sec}, {from}° – {to}°  ·  turn the mortar here",
+      rowDY:"Δ North (Y)",
+      rowDX:"Δ East (X)",
+      rowMil:"Azimuth in mils (6400)",
+      sectCap:"The simple way (one axis)",
+      onlyXk:"X axis only × 100",
+      onlyYk:"Y axis only × 100",
+      diagk:"True (diagonal)",
+      legendMe:"Me",
+      legendTarget:"Target",
+      legendGrid:"100 m grid",
+      legendRange:"L81 range: 132 m / 684 m",
+      docsTitle:"How the metres are worked out — and how accurate they are",
+      docs:"<p>On the WARDOGS map <b>1 whole coordinate unit = 100 metres</b>. So 0.10 = 10 m and 0.01 = 1 m.</p>"+
+        "<p><code>Distance (m) = 100 × √( ΔX² + ΔY² )</code> where <code>ΔX = target X − my X</code> and <code>ΔY = target Y − my Y</code>.</p>"+
+        "<p>In the fields, and when you paste, the order is <b>X first, then Y</b> — exactly as the game writes them on the map.</p>"+
+        "<p>That is plain geometry (Pythagoras) and it does not depend on any firing table — the two legs you used to work out separately are the perpendicular sides of a triangle, and the answer is the hypotenuse. The one-axis trick is valid <b>only</b> when the target is exactly on the same line as you.</p>"+
+        "<p>Bearing: <code>bearing = atan2(ΔX, ΔY)</code> in degrees 0–360, where 0° = North (increasing Y) and 90° = East (increasing X). Turn the barrel until the compass reads that number, then set the distance on the <b>RNG</b> (left readout of the sight).</p>"+
+        "<p><b>Compass — same notation as the map:</b> the game splits the circle into <b>8 sectors of 45°</b> and labels them with the English initials: <code>N</code> 337.5°–22.5°, <code>NE</code> 22.5°–67.5°, <code>E</code> 67.5°–112.5°, <code>SE</code> 112.5°–157.5°, <code>S</code> 157.5°–202.5°, <code>SW</code> 202.5°–247.5°, <code>W</code> 247.5°–292.5°, <code>NW</code> 292.5°–337.5°. The tool always shows the English name first and your own language in brackets, for example <code>276.1° W (O)</code> in French. The rose on the left highlights the sector you are in.</p>"+
+        "<p>Practical limits:</p>"+
+        "<ul>"+
+        "<li>The L81 (the mobile mortar) has a community range of <b>132–684 m</b>, max ~700 m. Closer than 132 m there is no solution — move closer or switch weapon.</li>"+
+        "<li>The sight shows RNG in metres; MILS is the barrel elevation and the game sets it together with the RNG.</li>"+
+        "<li>Mortar dispersion is ~50 MOA: <b>±2 m at 132 m and ±10 m at 684 m</b>. No amount of mathematical precision removes that — the first shell is always a ranging shot.</li>"+
+        "<li>On the <b>Ozeti</b> map the coordinate readout is considered temporary (about 162 m of offset per axis while it calibrates), so absolute X/Y values may be slightly off. The distance between two points you read <b>at the same moment</b> is not affected.</li>"+
+        "</ul>"+
+        "<p>Read the coordinates by hovering the cursor over your position and over the target (or right-click → mark coordinates and copy them).</p>",
+      footNote:"Local file, runs offline in your browser. Values are stored only on your device. Made by <b>IcarusGR</b>.",
+      cvMe:"ME",
+      cvTarget:"TARGET",
+      cvEmpty:"Enter coordinates to see the fire plan",
+      dirN:"(north)",
+      dirS:"(south)",
+      dirE:"(east)",
+      dirW:"(west)",
+      parseFail:"I did not find two numbers. Type for example 79.44 66.80",
+      placedMe:"Mine — X {x} , Y {y}",
+      placedTarget:"Target — X {x} , Y {y}",
+      extraNums:" (there are {n} more numbers — I used the first two)",
+      copyHead:"WARDOGS — mortar solution",
+      cMe:"Me",
+      cTarget:"Target",
+      cDist:"Distance (RNG)",
+      cBrg:"Bearing",
+      cDelta:"Offsets",
+      phGy:"66.80", phGx:"79.44", phTy:"70.10", phTx:"77.17"
+    },
+    el: {
+      pageTitle:"WARDOGS — Υπολογιστής Απόστασης Όλμου",
+      title:"Υπολογιστής Όλμου",
+      byline:"Ερασιτεχνικό εργαλείο από",
+      scaleNote:"1 μονάδα συντεταγμένης = <b>100 m</b> · ενημερώνεται ζωντανά",
+      cardMap:"Στοιχεία από τον χάρτη",
+      meLabel:"ΕΓΩ (ο όλμος)",
+      targetLabel:"Ο ΣΤΟΧΟΣ",
+      yLabel:"Y — Βορράς (πάνω) · 2ο",
+      xLabel:"X — Ανατολή (δεξιά) · 1ο",
+      yLabel2:"Y — Βορράς (πάνω) · 2ο",
+      xLabel2:"X — Ανατολή (δεξιά) · 1ο",
+      swap:"Αντιστροφή X ↔ Y",
+      swapTitle:"Χρήσιμο αν τα έβαλες ή τα επικόλλησες αντίστροφα (πρώτα Y)",
+      copy:"Αντιγραφή λύσης",
+      copied:"Αντιγράφηκε ✓",
+      clear:"Καθαρισμός",
+      pasteLabel:"Επικόλληση συντεταγμένων (προαιρετικό)",
+      pasteHint:"Δέχεται κόμμα ή τελεία στο δεκαδικό. Πρώτο ζευγάρι = «δικά μου», δεύτερο = «στόχος». Μέσα σε κάθε ζευγάρι η σειρά είναι X και μετά Y, όπως ακριβώς στο παιχνίδι.",
+      pastePlaceholder:"π.χ.   x= 79,44  y= 66,80\nή  79.44 66.80\nή  79.44, 66.80",
+      toMe:"→ Στα δικά μου",
+      toTarget:"→ Στον στόχο",
+      cardSolution:"Λύση βολής",
+      distLabel:"Απόσταση — βάλε αυτό το νούμερο στο RNG του όλμου",
+      distEmpty:"συμπλήρωσε και τα 4 πεδία",
+      exact:"ακριβώς {d} m  ·  {u} μονάδες πλέγματος",
+      badgeNear:"ΠΟΛΥ ΚΟΝΤΑ — κάτω από 132 m ο L81 δεν έχει λύση",
+      badgeFar:"ΠΑΝΩ από την εμβέλεια — 684 m είναι το μέγιστο του L81 (~700 m όριο)",
+      badgeOk:"ΜΕΣΑ ΣΤΗΝ ΕΜΒΕΛΕΙΑ του L81 (132–684 m)",
+      bearLabel:"Κατεύθυνση — ίδια γραφή με το map",
+      bearInit:"0° = N · 90° = E — ίδιοι τομείς με το map",
+      bearCard:"Στο map: τομέας {sec}, {from}° – {to}°  ·  γύρισε τον όλμο εδώ",
+      rowDY:"Δ Βορρά (Y)",
+      rowDX:"Δ Ανατολή (X)",
+      rowMil:"Αζιμούθιο σε mil (6400)",
+      sectCap:"Ο απλός τρόπος (ένας άξονας)",
+      onlyXk:"Μόνο στον άξονα X × 100",
+      onlyYk:"Μόνο στον άξονα Y × 100",
+      diagk:"Πραγματική (διαγώνιος)",
+      legendMe:"Εγώ",
+      legendTarget:"Στόχος",
+      legendGrid:"Πλέγμα 100 m",
+      legendRange:"Εμβέλεια L81: 132 m / 684 m",
+      docsTitle:"Πώς βγαίνουν τα μέτρα — και πόσο ακριβές είναι",
+      docs:"<p>Στον χάρτη του WARDOGS <b>1 ολόκληρη μονάδα συντεταγμένης = 100 μέτρα</b>. Άρα 0,10 = 10 m και 0,01 = 1 m.</p>"+
+        "<p><code>Απόσταση (m) = 100 × √( ΔX² + ΔY² )</code> όπου <code>ΔX = X στόχου − X δική μου</code> και <code>ΔY = Y στόχου − Y δική μου</code>.</p>"+
+        "<p>Στα πεδία, όπως και στην επικόλληση, η σειρά είναι <b>πρώτα X και μετά Y</b> — ακριβώς όπως τα γράφει το παιχνίδι στον χάρτη.</p>"+
+        "<p>Αυτό είναι απλή γεωμετρία (Πυθαγόρας) και δεν εξαρτάται από κανέναν πίνακα βολής — τα δύο σκέλη που υπολόγιζες χωριστά είναι οι κάθετες πλευρές του τριγώνου και το αποτέλεσμα είναι η υποτείνουσα. Δηλαδή η απλή μέθοδος του ενός άξονα ισχύει <b>μόνο</b> όταν ο στόχος είναι ακριβώς πάνω στην ίδια ευθεία.</p>"+
+        "<p>Κατεύθυνση: <code>bearing = atan2(ΔX, ΔY)</code> σε μοίρες 0–360, όπου 0° = Βορράς (αυξανόμενο Y) και 90° = Ανατολή (αυξανόμενο X). Γύρισε το κάννι μέχρι το compass να δείξει αυτόν τον αριθμό, και βάλε στο <b>RNG</b> (αριστερή ένδειξη του σκοπευτικού) τα μέτρα που βγάζει το εργαλείο.</p>"+
+        "<p><b>Πυξίδα — ίδια γραφή με το map:</b> το παιχνίδι χωρίζει τον κύκλο σε <b>8 τομείς των 45°</b> και τους γράφει με αγγλικά αρχικά: <code>N</code> 337,5°–22,5° · <code>NE</code> 22,5°–67,5° · <code>E</code> 67,5°–112,5° · <code>SE</code> 112,5°–157,5° · <code>S</code> 157,5°–202,5° · <code>SW</code> 202,5°–247,5° · <code>W</code> 247,5°–292,5° · <code>NW</code> 292,5°–337,5°. Το εργαλείο δείχνει πάντα πρώτα το αγγλικό όνομα και σε παρένθεση τη δική σου γλώσσα, π.χ. <code>276,1° W (Δ)</code>. Η ροζέτα στα αριστερά φωτίζει τον τομέα που είσαι.</p>"+
+        "<p>Πρακτικά όρια:</p>"+
+        "<ul>"+
+        "<li>Ο L81 (ο κινητός όλμος) έχει κατά κοινότητα εμβέλεια <b>132–684 m</b>, μέγιστο ~700 m. Πιο κοντά από 132 m δεν έχει λύση — πλησίασε ή άλλα όπλο.</li>"+
+        "<li>Το σκοπευτικό δείχνει RNG σε μέτρα· τα MILS είναι η ανύψωση του κάννου και τα ρυθμίζει το παιχνίδι μαζί με το RNG.</li>"+
+        "<li>Η διασπορά του όλμου είναι ~50 MOA: <b>±2 m στα 132 m και ±10 m στα 684 m</b>. Καμία μαθηματική ακρίβεια δεν το εξαλείφει αυτό — η πρώτη βολή είναι πάντα βολή διόρθωσης.</li>"+
+        "<li>Στον χάρτη <b>Ozeti</b> η ένδειξη συντεταγμένων θεωρείται προσωρινή (μετατόπιση ~162 m/άξονα κατά τη βαθμονόμηση), οπότε οι απόλυτες τιμές X/Y μπορεί να είναι λίγο έξω. Η απόσταση μεταξύ δύο σημείων που διαβάζεις <b>την ίδια στιγμή</b> δεν επηρεάζεται από αυτό.</li>"+
+        "</ul>"+
+        "<p>Διάβασε τις συντεταγμένες περνώντας τον κέρσορα πάνω από το σημείο σου και από τον στόχο (ή βάλε marker με δεξί κλικ → «mark coordinates» και αντέγραψέ τες).</p>",
+      footNote:"Τοπικό αρχείο, τρέχει offline στον browser. Τα πεδία αποθηκεύονται μόνο στη συσκευή σου. Φτιαγμένο από <b>IcarusGR</b>.",
+      cvMe:"ΕΓΩ",
+      cvTarget:"ΣΤΟΧΟΣ",
+      cvEmpty:"Βάλε τις συντεταγμένες για να δεις το σχέδιο βολής",
+      dirN:"(βορράς)",
+      dirS:"(νότος)",
+      dirE:"(ανατολή)",
+      dirW:"(δύση)",
+      parseFail:"Δεν βρήκα δύο αριθμούς. Γράψε π.χ. 79,44 66,80",
+      placedMe:"Δικά μου — X {x} , Y {y}",
+      placedTarget:"Στόχος — X {x} , Y {y}",
+      extraNums:"  (υπάρχουν άλλα {n} νούμερα — χρησιμοποίησα τα δύο πρώτα)",
+      copyHead:"WARDOGS — λύση όλμου",
+      cMe:"Εγώ",
+      cTarget:"Στόχος",
+      cDist:"Απόσταση (RNG)",
+      cBrg:"Κατεύθυνση",
+      cDelta:"Μετατοπίσεις",
+      phGy:"66,80", phGx:"79,44", phTy:"70,10", phTx:"77,17"
+    },
+    fr: {
+      pageTitle:"WARDOGS — Calculateur de distance de mortier",
+      title:"Calculateur de mortier",
+      byline:"Outil amateur par",
+      scaleNote:"1 unité de carte = <b>100 m</b> · mise à jour en direct",
+      cardMap:"Données de la carte",
+      meLabel:"MOI (le mortier)",
+      targetLabel:"LA CIBLE",
+      yLabel:"Y — Nord (haut) · 2e",
+      xLabel:"X — Est (droite) · 1er",
+      yLabel2:"Y — Nord (haut) · 2e",
+      xLabel2:"X — Est (droite) · 1er",
+      swap:"Inverser X ↔ Y",
+      swapTitle:"Utile si vous les avez saisis ou collés dans l'autre ordre (Y d'abord)",
+      copy:"Copier la solution",
+      copied:"Copié ✓",
+      clear:"Réinitialiser",
+      pasteLabel:"Coller les coordonnées (facultatif)",
+      pasteHint:"Accepte la virgule ou le point comme séparateur décimal. Première paire = moi, deuxième paire = cible. Dans chaque paire, l'ordre est X puis Y, exactement comme dans le jeu.",
+      pastePlaceholder:"ex.  x= 79,44  y= 66,80\nou  79.44 66.80\nou  79.44, 66.80",
+      toMe:"→ Moi",
+      toTarget:"→ Cible",
+      cardSolution:"Solution de tir",
+      distLabel:"Distance — mettez ce nombre dans le RNG du mortier",
+      distEmpty:"remplissez les quatre champs",
+      exact:"exactement {d} m  ·  {u} unités de carte",
+      badgeNear:"TROP PRÈS — en dessous de 132 m le L81 n'a pas de solution",
+      badgeFar:"HORS PORTÉE — 684 m est le maximum du L81 (limite ~700 m)",
+      badgeOk:"DANS LA PORTÉE DU L81 (132–684 m)",
+      bearLabel:"Azimut — même notation que la carte",
+      bearInit:"0° = N · 90° = E — mêmes secteurs que la carte",
+      bearCard:"Sur la carte : secteur {sec}, {from}° – {to}°  ·  tournez le mortier ici",
+      rowDY:"Δ Nord (Y)",
+      rowDX:"Δ Est (X)",
+      rowMil:"Azimut en mils (6400)",
+      sectCap:"La méthode simple (un seul axe)",
+      onlyXk:"Axe X seulement × 100",
+      onlyYk:"Axe Y seulement × 100",
+      diagk:"Réelle (diagonale)",
+      legendMe:"Moi",
+      legendTarget:"Cible",
+      legendGrid:"Grille de 100 m",
+      legendRange:"Portée L81 : 132 m / 684 m",
+      docsTitle:"Comment les mètres sont calculés — et leur précision",
+      docs:"<p>Sur la carte de WARDOGS <b>1 unité de coordonnée entière = 100 mètres</b>. Donc 0,10 = 10 m et 0,01 = 1 m.</p>"+
+        "<p><code>Distance (m) = 100 × √( ΔX² + ΔY² )</code> où <code>ΔX = X cible − X moi</code> et <code>ΔY = Y cible − Y moi</code>.</p>"+
+        "<p>Dans les champs, comme lors du collage, l'ordre est <b>X d'abord, puis Y</b> — exactement comme le jeu les écrit sur la carte.</p>"+
+        "<p>C'est de la géométrie simple (Pythagore) et cela ne dépend d'aucune table de tir — les deux segments que vous calculiez séparément sont les côtés perpendiculaires du triangle, et le résultat est l'hypoténuse. La méthode à un seul axe n'est valable <b>que</b> si la cible est exactement sur la même ligne que vous.</p>"+
+        "<p>Azimut : <code>bearing = atan2(ΔX, ΔY)</code> en degrés 0–360, où 0° = Nord (Y croissant) et 90° = Est (X croissant). Tournez le canon jusqu'à ce que la boussole affiche ce nombre, puis réglez la distance sur le <b>RNG</b> (indication de gauche de la lunette).</p>"+
+        "<p><b>Boussole — même notation que la carte :</b> le jeu divise le cercle en <b>8 secteurs de 45°</b> et les nomme avec les initiales anglaises : <code>N</code> 337,5°–22,5°, <code>NE</code> 22,5°–67,5°, <code>E</code> 67,5°–112,5°, <code>SE</code> 112,5°–157,5°, <code>S</code> 157,5°–202,5°, <code>SW</code> 202,5°–247,5°, <code>W</code> 247,5°–292,5°, <code>NW</code> 292,5°–337,5°. L'outil affiche toujours le nom anglais d'abord et votre langue entre parenthèses, par exemple <code>276,1° W (O)</code> en français. La rose à gauche met en évidence le secteur où vous êtes.</p>"+
+        "<p>Limites pratiques :</p>"+
+        "<ul>"+
+        "<li>Le L81 (le mortier mobile) a une portée communautaire de <b>132–684 m</b>, maximum ~700 m. En dessous de 132 m il n'y a pas de solution — rapprochez-vous ou changez d'arme.</li>"+
+        "<li>La lunette affiche le RNG en mètres ; les MILS sont l'élévation du canon et le jeu les règle avec le RNG.</li>"+
+        "<li>La dispersion du mortier est d'environ 50 MOA : <b>±2 m à 132 m et ±10 m à 684 m</b>. Aucune précision mathématique ne l'élimine — le premier obus est toujours un tir de réglage.</li>"+
+        "<li>Sur la carte <b>Ozeti</b> l'affichage des coordonnées est considéré comme temporaire (environ 162 m de décalage par axe pendant la calibration), donc les valeurs absolues X/Y peuvent être légèrement fausses. La distance entre deux points lus <b>au même moment</b> n'est pas affectée.</li>"+
+        "</ul>"+
+        "<p>Lisez les coordonnées en survolant votre position et la cible avec le curseur (ou clic droit → marquer les coordonnées, puis copiez-les).</p>",
+      footNote:"Fichier local, fonctionne hors ligne dans votre navigateur. Les valeurs sont enregistrées uniquement sur votre appareil. Réalisé par <b>IcarusGR</b>.",
+      cvMe:"MOI",
+      cvTarget:"CIBLE",
+      cvEmpty:"Entrez les coordonnées pour voir le plan de tir",
+      dirN:"(nord)",
+      dirS:"(sud)",
+      dirE:"(est)",
+      dirW:"(ouest)",
+      parseFail:"Je n'ai pas trouvé deux nombres. Tapez par exemple 79,44 66,80",
+      placedMe:"Moi — X {x} , Y {y}",
+      placedTarget:"Cible — X {x} , Y {y}",
+      extraNums:"  (il y a {n} nombres en plus — j'ai utilisé les deux premiers)",
+      copyHead:"WARDOGS — solution de mortier",
+      cMe:"Moi",
+      cTarget:"Cible",
+      cDist:"Distance (RNG)",
+      cBrg:"Azimut",
+      cDelta:"Décalages",
+      phGy:"66,80", phGx:"79,44", phTy:"70,10", phTx:"77,17"
+    },
+    de: {
+      pageTitle:"WARDOGS — Mörser-Entfernungsrechner",
+      title:"Mörser-Rechner",
+      byline:"Fan-Tool von",
+      scaleNote:"1 Karteneinheit = <b>100 m</b> · wird live aktualisiert",
+      cardMap:"Daten von der Karte",
+      meLabel:"ICH (der Mörser)",
+      targetLabel:"DAS ZIEL",
+      yLabel:"Y — Nord (oben) · 2.",
+      xLabel:"X — Ost (rechts) · 1.",
+      yLabel2:"Y — Nord (oben) · 2.",
+      xLabel2:"X — Ost (rechts) · 1.",
+      swap:"X ↔ Y tauschen",
+      swapTitle:"Nützlich, wenn du sie andersherum eingegeben oder eingefügt hast (Y zuerst)",
+      copy:"Lösung kopieren",
+      copied:"Kopiert ✓",
+      clear:"Zurücksetzen",
+      pasteLabel:"Koordinaten einfügen (optional)",
+      pasteHint:"Komma oder Punkt als Dezimaltrennzeichen. Erstes Paar = ich, zweites Paar = Ziel. Innerhalb eines Paares gilt die Reihenfolge X, dann Y — genau wie im Spiel.",
+      pastePlaceholder:"z. B.  x= 79,44  y= 66,80\noder  79.44 66.80\noder  79.44, 66.80",
+      toMe:"→ Ich",
+      toTarget:"→ Ziel",
+      cardSolution:"Feuerlösung",
+      distLabel:"Entfernung — diese Zahl in das RNG des Mörsers eintragen",
+      distEmpty:"alle vier Felder ausfüllen",
+      exact:"genau {d} m  ·  {u} Karteneinheiten",
+      badgeNear:"ZU NAH — unter 132 m hat der L81 keine Lösung",
+      badgeFar:"AUSSER REICHWEITE — 684 m ist das Maximum des L81 (~700 m Grenze)",
+      badgeOk:"INNERHALB DER L81-REICHWEITE (132–684 m)",
+      bearLabel:"Richtung — gleiche Schreibweise wie die Karte",
+      bearInit:"0° = N · 90° = E — gleiche Sektoren wie die Karte",
+      bearCard:"Auf der Karte: Sektor {sec}, {from}° – {to}°  ·  Mörser hierhin drehen",
+      rowDY:"Δ Nord (Y)",
+      rowDX:"Δ Ost (X)",
+      rowMil:"Azimut in mil (6400)",
+      sectCap:"Der einfache Weg (eine Achse)",
+      onlyXk:"Nur X-Achse × 100",
+      onlyYk:"Nur Y-Achse × 100",
+      diagk:"Tatsächlich (Diagonale)",
+      legendMe:"Ich",
+      legendTarget:"Ziel",
+      legendGrid:"100-m-Raster",
+      legendRange:"L81-Reichweite: 132 m / 684 m",
+      docsTitle:"Wie die Meter berechnet werden — und wie genau sie sind",
+      docs:"<p>Auf der WARDOGS-Karte ist <b>1 ganze Koordinateneinheit = 100 Meter</b>. Also 0,10 = 10 m und 0,01 = 1 m.</p>"+
+        "<p><code>Entfernung (m) = 100 × √( ΔX² + ΔY² )</code> mit <code>ΔX = X Ziel − X ich</code> und <code>ΔY = Y Ziel − Y ich</code>.</p>"+
+        "<p>In den Feldern und beim Einfügen gilt die Reihenfolge <b>erst X, dann Y</b> — genau wie das Spiel sie auf der Karte schreibt.</p>"+
+        "<p>Das ist einfache Geometrie (Pythagoras) und hängt von keiner Schusstafel ab — die zwei Strecken, die du getrennt gerechnet hast, sind die Katheten des Dreiecks, und das Ergebnis ist die Hypotenuse. Die Ein-Achsen-Methode gilt <b>nur</b>, wenn das Ziel genau auf deiner Linie liegt.</p>"+
+        "<p>Richtung: <code>bearing = atan2(ΔX, ΔY)</code> in Grad 0–360, wobei 0° = Nord (wachsendes Y) und 90° = Ost (wachsendes X). Drehe das Rohr, bis der Kompass diese Zahl zeigt, und stelle dann die Entfernung am <b>RNG</b> ein (linke Anzeige des Visiers).</p>"+
+        "<p><b>Kompass — gleiche Schreibweise wie die Karte:</b> das Spiel teilt den Kreis in <b>8 Sektoren von 45°</b> und beschriftet sie mit englischen Kürzeln: <code>N</code> 337,5°–22,5°, <code>NE</code> 22,5°–67,5°, <code>E</code> 67,5°–112,5°, <code>SE</code> 112,5°–157,5°, <code>S</code> 157,5°–202,5°, <code>SW</code> 202,5°–247,5°, <code>W</code> 247,5°–292,5°, <code>NW</code> 292,5°–337,5°. Das Tool zeigt immer zuerst den englischen Namen und in Klammern deine Sprache, zum Beispiel <code>276,1° W (W)</code>. Die Rose links hebt den Sektor hervor, in dem du bist.</p>"+
+        "<p>Praktische Grenzen:</p>"+
+        "<ul>"+
+        "<li>Der L81 (der mobile Mörser) hat laut Community eine Reichweite von <b>132–684 m</b>, maximal ~700 m. Unter 132 m gibt es keine Lösung — näher heran oder andere Waffe.</li>"+
+        "<li>Das Visier zeigt RNG in Metern; MILS ist die Rohrerhöhung und wird vom Spiel zusammen mit dem RNG gesetzt.</li>"+
+        "<li>Die Streuung des Mörsers liegt bei ~50 MOA: <b>±2 m auf 132 m und ±10 m auf 684 m</b>. Keine Rechengenauigkeit beseitigt das — der erste Schuss ist immer ein Einschießen.</li>"+
+        "<li>Auf der Karte <b>Ozeti</b> gilt die Koordinatenanzeige als vorläufig (etwa 162 m Versatz pro Achse während der Kalibrierung), daher können die absoluten X/Y-Werte leicht daneben liegen. Die Entfernung zwischen zwei Punkten, die du <b>im selben Moment</b> abliest, ist davon nicht betroffen.</li>"+
+        "</ul>"+
+        "<p>Lies die Koordinaten ab, indem du den Cursor über deine Position und über das Ziel führst (oder Rechtsklick → Koordinaten markieren und kopieren).</p>",
+      footNote:"Lokale Datei, läuft offline im Browser. Werte werden nur auf deinem Gerät gespeichert. Von <b>IcarusGR</b>.",
+      cvMe:"ICH",
+      cvTarget:"ZIEL",
+      cvEmpty:"Koordinaten eingeben, um den Feuerplan zu sehen",
+      dirN:"(Nord)",
+      dirS:"(Süd)",
+      dirE:"(Ost)",
+      dirW:"(West)",
+      parseFail:"Ich habe keine zwei Zahlen gefunden. Schreibe z. B. 79,44 66,80",
+      placedMe:"Ich — X {x} , Y {y}",
+      placedTarget:"Ziel — X {x} , Y {y}",
+      extraNums:"  (es gibt {n} weitere Zahlen — ich habe die ersten zwei benutzt)",
+      copyHead:"WARDOGS — Mörser-Lösung",
+      cMe:"Ich",
+      cTarget:"Ziel",
+      cDist:"Entfernung (RNG)",
+      cBrg:"Richtung",
+      cDelta:"Abweichungen",
+      phGy:"66,80", phGx:"79,44", phTy:"70,10", phTx:"77,17"
+    },
+    ru: {
+      pageTitle:"WARDOGS — Калькулятор дистанции для миномёта",
+      title:"Калькулятор миномёта",
+      byline:"Фанатский инструмент от",
+      scaleNote:"1 единица карты = <b>100 м</b> · обновляется вживую",
+      cardMap:"Данные с карты",
+      meLabel:"Я (миномёт)",
+      targetLabel:"ЦЕЛЬ",
+      yLabel:"Y — Север (вверх) · 2-я",
+      xLabel:"X — Восток (вправо) · 1-я",
+      yLabel2:"Y — Север (вверх) · 2-я",
+      xLabel2:"X — Восток (вправо) · 1-я",
+      swap:"Поменять X ↔ Y",
+      swapTitle:"Полезно, если вы ввели или вставили их в обратном порядке (сначала Y)",
+      copy:"Копировать решение",
+      copied:"Скопировано ✓",
+      clear:"Сбросить",
+      pasteLabel:"Вставьте координаты (необязательно)",
+      pasteHint:"Принимает запятую или точку как десятичный разделитель. Первая пара = я, вторая пара = цель. Внутри пары порядок — X, затем Y, точно как в игре.",
+      pastePlaceholder:"напр.  x= 79,44  y= 66,80\nили  79.44 66.80\nили  79.44, 66.80",
+      toMe:"→ Мне",
+      toTarget:"→ Цели",
+      cardSolution:"Решение для стрельбы",
+      distLabel:"Дистанция — это число введите в RNG миномёта",
+      distEmpty:"заполните все четыре поля",
+      exact:"точно {d} м  ·  {u} единиц карты",
+      badgeNear:"СЛИШКОМ БЛИЗКО — ближе 132 м у L81 нет решения",
+      badgeFar:"ВНЕ ДИАПАЗОНА — 684 м это максимум L81 (предел ~700 м)",
+      badgeOk:"В ПРЕДЕЛАХ ДИАПАЗОНА L81 (132–684 м)",
+      bearLabel:"Направление — те же обозначения, что на карте",
+      bearInit:"0° = N · 90° = E — те же секторы, что на карте",
+      bearCard:"На карте: сектор {sec}, {from}° – {to}°  ·  поверните миномёт сюда",
+      rowDY:"Δ Север (Y)",
+      rowDX:"Δ Восток (X)",
+      rowMil:"Азимут в милах (6400)",
+      sectCap:"Простой способ (одна ось)",
+      onlyXk:"Только по оси X × 100",
+      onlyYk:"Только по оси Y × 100",
+      diagk:"Реальная (по диагонали)",
+      legendMe:"Я",
+      legendTarget:"Цель",
+      legendGrid:"Сетка 100 м",
+      legendRange:"Дальность L81: 132 м / 684 м",
+      docsTitle:"Как считаются метры — и насколько это точно",
+      docs:"<p>На карте WARDOGS <b>1 целая единица координат = 100 метров</b>. Значит 0,10 = 10 м, а 0,01 = 1 м.</p>"+
+        "<p><code>Дистанция (м) = 100 × √( ΔX² + ΔY² )</code>, где <code>ΔX = X цели − мой X</code> и <code>ΔY = Y цели − мой Y</code>.</p>"+
+        "<p>В полях и при вставке порядок — <b>сначала X, затем Y</b>, точно как игра пишет их на карте.</p>"+
+        "<p>Это обычная геометрия (Пифагор), и она не зависит ни от каких таблиц стрельбы — два отрезка, которые вы считали отдельно, это катеты треугольника, а результат — гипотенуза. Метод одной оси верен <b>только</b> тогда, когда цель стоит ровно на одной линии с вами.</p>"+
+        "<p>Направление: <code>bearing = atan2(ΔX, ΔY)</code> в градусах 0–360, где 0° = Север (растущий Y) и 90° = Восток (растущий X). Поверните ствол, пока компас не покажет это число, а дистанцию поставьте на <b>RNG</b> (левая шкала прицела).</p>"+
+        "<p><b>Компас — те же обозначения, что на карте:</b> игра делит круг на <b>8 секторов по 45°</b> и подписывает их английскими буквами: <code>N</code> 337,5°–22,5°, <code>NE</code> 22,5°–67,5°, <code>E</code> 67,5°–112,5°, <code>SE</code> 112,5°–157,5°, <code>S</code> 157,5°–202,5°, <code>SW</code> 202,5°–247,5°, <code>W</code> 247,5°–292,5°, <code>NW</code> 292,5°–337,5°. Инструмент всегда пишет английское имя первым и ваш язык в скобках, например <code>276,1° W (З)</code>. Роза слева подсвечивает ваш сектор.</p>"+
+        "<p>Практические пределы:</p>"+
+        "<ul>"+
+        "<li>У L81 (переносной миномёт) по данным сообщества дальность <b>132–684 м</b>, максимум ~700 м. Ближе 132 м решения нет — подойдите ближе или смените оружие.</li>"+
+        "<li>Прицел показывает RNG в метрах; MILS — это угол возвышения ствола, игра ставит его вместе с RNG.</li>"+
+        "<li>Разброс миномёта ~50 MOA: <b>±2 м на 132 м и ±10 м на 684 м</b>. Никакая точность расчёта это не уберёт — первый выстрел всегда пристрелочный.</li>"+
+        "<li>На карте <b>Ozeti</b> показания координат считаются временными (смещение около 162 м на ось при калибровке), поэтому абсолютные X/Y могут немного отличаться. На дистанцию между двумя точками, которые вы читаете <b>в один и тот же момент</b>, это не влияет.</li>"+
+        "</ul>"+
+        "<p>Координаты читаются наведением курсора на свою позицию и на цель (или правый клик → отметить координаты и скопировать их).</p>",
+      footNote:"Локальный файл, работает офлайн в браузере. Значения сохраняются только на вашем устройстве. Сделано <b>IcarusGR</b>.",
+      cvMe:"Я",
+      cvTarget:"ЦЕЛЬ",
+      cvEmpty:"Введите координаты, чтобы увидеть план стрельбы",
+      dirN:"(север)",
+      dirS:"(юг)",
+      dirE:"(восток)",
+      dirW:"(запад)",
+      parseFail:"Я не нашёл два числа. Напишите, например, 79,44 66,80",
+      placedMe:"Я — X {x} , Y {y}",
+      placedTarget:"Цель — X {x} , Y {y}",
+      extraNums:"  (есть ещё {n} чисел — я взял первые два)",
+      copyHead:"WARDOGS — решение для миномёта",
+      cMe:"Я",
+      cTarget:"Цель",
+      cDist:"Дистанция (RNG)",
+      cBrg:"Направление",
+      cDelta:"Смещения",
+      phGy:"66,80", phGx:"79,44", phTy:"70,10", phTx:"77,17"
+    },
+    es: {
+      pageTitle:"WARDOGS — Calculadora de distancia de mortero",
+      title:"Calculadora de mortero",
+      byline:"Herramienta hecha por",
+      scaleNote:"1 unidad del mapa = <b>100 m</b> · se actualiza en vivo",
+      cardMap:"Datos del mapa",
+      meLabel:"YO (el mortero)",
+      targetLabel:"EL OBJETIVO",
+      yLabel:"Y — Norte (arriba) · 2.º",
+      xLabel:"X — Este (derecha) · 1.º",
+      yLabel2:"Y — Norte (arriba) · 2.º",
+      xLabel2:"X — Este (derecha) · 1.º",
+      swap:"Intercambiar X ↔ Y",
+      swapTitle:"Útil si los escribiste o pegaste al revés (Y primero)",
+      copy:"Copiar solución",
+      copied:"Copiado ✓",
+      clear:"Restablecer",
+      pasteLabel:"Pega las coordenadas (opcional)",
+      pasteHint:"Acepta coma o punto como separador decimal. Primer par = yo, segundo par = objetivo. Dentro de cada par el orden es X y luego Y, igual que en el juego.",
+      pastePlaceholder:"p. ej.  x= 79,44  y= 66,80\no  79.44 66.80\no  79.44, 66.80",
+      toMe:"→ Yo",
+      toTarget:"→ Objetivo",
+      cardSolution:"Solución de tiro",
+      distLabel:"Distancia — pon este número en el RNG del mortero",
+      distEmpty:"rellena los cuatro campos",
+      exact:"exactamente {d} m  ·  {u} unidades del mapa",
+      badgeNear:"DEMASIADO CERCA — por debajo de 132 m el L81 no tiene solución",
+      badgeFar:"FUERA DE ALCANCE — 684 m es el máximo del L81 (límite ~700 m)",
+      badgeOk:"DENTRO DEL ALCANCE DEL L81 (132–684 m)",
+      bearLabel:"Rumbo — la misma notación que el mapa",
+      bearInit:"0° = N · 90° = E — los mismos sectores que el mapa",
+      bearCard:"En el mapa: sector {sec}, {from}° – {to}°  ·  gira el mortero aquí",
+      rowDY:"Δ Norte (Y)",
+      rowDX:"Δ Este (X)",
+      rowMil:"Azimut en milésimas (6400)",
+      sectCap:"El método simple (un solo eje)",
+      onlyXk:"Solo eje X × 100",
+      onlyYk:"Solo eje Y × 100",
+      diagk:"Real (diagonal)",
+      legendMe:"Yo",
+      legendTarget:"Objetivo",
+      legendGrid:"Cuadrícula de 100 m",
+      legendRange:"Alcance L81: 132 m / 684 m",
+      docsTitle:"Cómo se calculan los metros — y qué precisión tienen",
+      docs:"<p>En el mapa de WARDOGS <b>1 unidad entera de coordenada = 100 metros</b>. Así 0,10 = 10 m y 0,01 = 1 m.</p>"+
+        "<p><code>Distancia (m) = 100 × √( ΔX² + ΔY² )</code> donde <code>ΔX = X objetivo − mi X</code> y <code>ΔY = Y objetivo − mi Y</code>.</p>"+
+        "<p>En los campos, y al pegar, el orden es <b>primero X y luego Y</b> — tal como los escribe el juego en el mapa.</p>"+
+        "<p>Es geometría simple (Pitágoras) y no depende de ninguna tabla de tiro — los dos tramos que calculabas por separado son los catetos del triángulo y el resultado es la hipotenusa. El método de un solo eje vale <b>solo</b> cuando el objetivo está exactamente en tu misma línea.</p>"+
+        "<p>Rumbo: <code>bearing = atan2(ΔX, ΔY)</code> en grados 0–360, donde 0° = Norte (Y creciente) y 90° = Este (X creciente). Gira el cañón hasta que la brújula marque ese número y pon la distancia en el <b>RNG</b> (indicador izquierdo de la mira).</p>"+
+        "<p><b>Brújula — la misma notación que el mapa:</b> el juego divide el círculo en <b>8 sectores de 45°</b> y los etiqueta con las iniciales inglesas: <code>N</code> 337,5°–22,5°, <code>NE</code> 22,5°–67,5°, <code>E</code> 67,5°–112,5°, <code>SE</code> 112,5°–157,5°, <code>S</code> 157,5°–202,5°, <code>SW</code> 202,5°–247,5°, <code>W</code> 247,5°–292,5°, <code>NW</code> 292,5°–337,5°. La herramienta muestra siempre primero el nombre inglés y tu idioma entre paréntesis, por ejemplo <code>276,1° W (O)</code> en español. La rosa de la izquierda resalta el sector en el que estás.</p>"+
+        "<p>Límites prácticos:</p>"+
+        "<ul>"+
+        "<li>El L81 (el mortero móvil) tiene un alcance de comunidad de <b>132–684 m</b>, máximo ~700 m. Por debajo de 132 m no hay solución — acércate o cambia de arma.</li>"+
+        "<li>La mira muestra el RNG en metros; las MILS son la elevación del cañón y el juego las ajusta junto con el RNG.</li>"+
+        "<li>La dispersión del mortero es de ~50 MOA: <b>±2 m a 132 m y ±10 m a 684 m</b>. Ninguna precisión matemática lo elimina — el primer disparo siempre es de corrección.</li>"+
+        "<li>En el mapa <b>Ozeti</b> la lectura de coordenadas se considera temporal (unos 162 m de desfase por eje durante la calibración), así que los valores absolutos X/Y pueden estar algo desviados. La distancia entre dos puntos que leas <b>en el mismo momento</b> no se ve afectada.</li>"+
+        "</ul>"+
+        "<p>Lee las coordenadas pasando el cursor por tu posición y por el objetivo (o clic derecho → marcar coordenadas y cópialas).</p>",
+      footNote:"Archivo local, funciona sin conexión en tu navegador. Los valores se guardan solo en tu dispositivo. Hecho por <b>IcarusGR</b>.",
+      cvMe:"YO",
+      cvTarget:"OBJETIVO",
+      cvEmpty:"Introduce las coordenadas para ver el plan de tiro",
+      dirN:"(norte)",
+      dirS:"(sur)",
+      dirE:"(este)",
+      dirW:"(oeste)",
+      parseFail:"No encontré dos números. Escribe por ejemplo 79,44 66,80",
+      placedMe:"Yo — X {x} , Y {y}",
+      placedTarget:"Objetivo — X {x} , Y {y}",
+      extraNums:"  (hay {n} números más — usé los dos primeros)",
+      copyHead:"WARDOGS — solución de mortero",
+      cMe:"Yo",
+      cTarget:"Objetivo",
+      cDist:"Distancia (RNG)",
+      cBrg:"Rumbo",
+      cDelta:"Desfases",
+      phGy:"66,80", phGx:"79,44", phTy:"70,10", phTx:"77,17"
+    },
+    it: {
+      pageTitle:"WARDOGS — Calcolatore di distanza del mortaio",
+      title:"Calcolatore del mortaio",
+      byline:"Strumento amatoriale di",
+      scaleNote:"1 unità della mappa = <b>100 m</b> · aggiornamento dal vivo",
+      cardMap:"Dati dalla mappa",
+      meLabel:"IO (il mortaio)",
+      targetLabel:"IL BERSAGLIO",
+      yLabel:"Y — Nord (in alto) · 2º",
+      xLabel:"X — Est (a destra) · 1º",
+      yLabel2:"Y — Nord (in alto) · 2º",
+      xLabel2:"X — Est (a destra) · 1º",
+      swap:"Inverti X ↔ Y",
+      swapTitle:"Utile se li hai inseriti o incollati al contrario (Y prima)",
+      copy:"Copia soluzione",
+      copied:"Copiato ✓",
+      clear:"Azzera",
+      pasteLabel:"Incolla le coordinate (facoltativo)",
+      pasteHint:"Accetta la virgola o il punto come separatore decimale. Prima coppia = io, seconda coppia = bersaglio. All'interno di ogni coppia l'ordine è X poi Y, proprio come nel gioco.",
+      pastePlaceholder:"es.  x= 79,44  y= 66,80\no  79.44 66.80\no  79.44, 66.80",
+      toMe:"→ Io",
+      toTarget:"→ Bersaglio",
+      cardSolution:"Soluzione di tiro",
+      distLabel:"Distanza — metti questo numero nel RNG del mortaio",
+      distEmpty:"compila tutti e quattro i campi",
+      exact:"esattamente {d} m  ·  {u} unità della mappa",
+      badgeNear:"TROPPO VICINO — sotto i 132 m l'L81 non ha soluzione",
+      badgeFar:"FUORI PORTATA — 684 m è il massimo dell'L81 (limite ~700 m)",
+      badgeOk:"ENTRO LA PORTATA DELL'L81 (132–684 m)",
+      bearLabel:"Direzione — stessa notazione della mappa",
+      bearInit:"0° = N · 90° = E — stessi settori della mappa",
+      bearCard:"Sulla mappa: settore {sec}, {from}° – {to}°  ·  gira il mortaio qui",
+      rowDY:"Δ Nord (Y)",
+      rowDX:"Δ Est (X)",
+      rowMil:"Azimut in mil (6400)",
+      sectCap:"Il metodo semplice (un solo asse)",
+      onlyXk:"Solo asse X × 100",
+      onlyYk:"Solo asse Y × 100",
+      diagk:"Reale (diagonale)",
+      legendMe:"Io",
+      legendTarget:"Bersaglio",
+      legendGrid:"Griglia da 100 m",
+      legendRange:"Portata L81: 132 m / 684 m",
+      docsTitle:"Come si ricavano i metri — e quanto sono precisi",
+      docs:"<p>Sulla mappa di WARDOGS <b>1 unità intera di coordinata = 100 metri</b>. Quindi 0,10 = 10 m e 0,01 = 1 m.</p>"+
+        "<p><code>Distanza (m) = 100 × √( ΔX² + ΔY² )</code> dove <code>ΔX = X bersaglio − X mio</code> e <code>ΔY = Y bersaglio − Y mio</code>.</p>"+
+        "<p>Nei campi, e quando incolli, l'ordine è <b>prima X poi Y</b> — esattamente come li scrive il gioco sulla mappa.</p>"+
+        "<p>È geometria semplice (Pitagora) e non dipende da nessuna tabella di tiro — i due tratti che calcolavi separatamente sono i cateti del triangolo e il risultato è l'ipotenusa. Il metodo del singolo asse vale <b>solo</b> quando il bersaglio è esattamente sulla tua stessa linea.</p>"+
+        "<p>Direzione: <code>bearing = atan2(ΔX, ΔY)</code> in gradi 0–360, dove 0° = Nord (Y crescente) e 90° = Est (X crescente). Gira la canna finché la bussola non mostra quel numero, poi imposta la distanza sul <b>RNG</b> (indicatore sinistro del mirino).</p>"+
+        "<p><b>Bussola — stessa notazione della mappa:</b> il gioco divide il cerchio in <b>8 settori da 45°</b> e li etichetta con le iniziali inglesi: <code>N</code> 337,5°–22,5°, <code>NE</code> 22,5°–67,5°, <code>E</code> 67,5°–112,5°, <code>SE</code> 112,5°–157,5°, <code>S</code> 157,5°–202,5°, <code>SW</code> 202,5°–247,5°, <code>W</code> 247,5°–292,5°, <code>NW</code> 292,5°–337,5°. Lo strumento mostra sempre prima il nome inglese e la tua lingua tra parentesi, per esempio <code>276,1° W (O)</code> in italiano. La rosa a sinistra evidenzia il settore in cui ti trovi.</p>"+
+        "<p>Limiti pratici:</p>"+
+        "<ul>"+
+        "<li>L'L81 (il mortaio mobile) ha una portata secondo la community di <b>132–684 m</b>, massimo ~700 m. Sotto i 132 m non c'è soluzione — avvicinati o cambia arma.</li>"+
+        "<li>Il mirino mostra l'RNG in metri; i MILS sono l'elevazione della canna e il gioco li regola insieme all'RNG.</li>"+
+        "<li>La dispersione del mortaio è di ~50 MOA: <b>±2 m a 132 m e ±10 m a 684 m</b>. Nessuna precisione di calcolo lo elimina — il primo colpo è sempre di correzione.</li>"+
+        "<li>Sulla mappa <b>Ozeti</b> la lettura delle coordinate è considerata provvisoria (circa 162 m di scostamento per asse durante la calibrazione), quindi i valori assoluti X/Y possono essere un po' fuori. La distanza fra due punti letti <b>nello stesso momento</b> non ne risente.</li>"+
+        "</ul>"+
+        "<p>Leggi le coordinate passando il cursore sulla tua posizione e sul bersaglio (oppure clic destro → segna coordinate e copiale).</p>",
+      footNote:"File locale, funziona offline nel browser. I valori sono salvati solo sul tuo dispositivo. Fatto da <b>IcarusGR</b>.",
+      cvMe:"IO",
+      cvTarget:"BERSAGLIO",
+      cvEmpty:"Inserisci le coordinate per vedere il piano di tiro",
+      dirN:"(nord)",
+      dirS:"(sud)",
+      dirE:"(est)",
+      dirW:"(ovest)",
+      parseFail:"Non ho trovato due numeri. Scrivi per esempio 79,44 66,80",
+      placedMe:"Io — X {x} , Y {y}",
+      placedTarget:"Bersaglio — X {x} , Y {y}",
+      extraNums:"  (ci sono altri {n} numeri — ho usato i primi due)",
+      copyHead:"WARDOGS — soluzione del mortaio",
+      cMe:"Io",
+      cTarget:"Bersaglio",
+      cDist:"Distanza (RNG)",
+      cBrg:"Direzione",
+      cDelta:"Scostamenti",
+      phGy:"66,80", phGx:"79,44", phTy:"70,10", phTx:"77,17"
+    },
+  };
+
+  function sectorName(s){                       // "W" ή "W (Δ)" στη γλώσσα μας
+    var loc = (COMPASS[L] || COMPASS.en)[s.en];
+    return (loc && loc !== s.en) ? s.en + " (" + loc + ")" : s.en;
+  }
+  function sector(b){
+    var i = Math.round(b/45 + 8) % 8;
+    var s = SECTORS[i];
+    return { en:s.en, from:(s.c-22.5+360)%360, to:(s.c+22.5)%360, i:i };
+  }
+  function markRose(i){
+    for (var k=0;k<SECTORS.length;k++){
+      var n = el("lat"+SECTORS[k].en);
+      if (n) n.setAttribute("class", k===i ? "lat on" : "lat");
+    }
+  }
+
+  /* ---------- γλώσσα ---------- */
+  function t(key, vars){
+    var d = I18N[L] || I18N.en;
+    var s = (d[key] !== undefined) ? d[key] : (I18N.en[key] !== undefined ? I18N.en[key] : key);
+    if (vars){ for (var k in vars){ if (vars.hasOwnProperty(k)) s = s.split("{"+k+"}").join(vars[k]); } }
+    return s;
+  }
+  function applyLang(code){
+    L = I18N[code] ? code : "en";
+    document.documentElement.lang = L;
+    document.title = t("pageTitle");
+    var one = function(attr, prop){
+      var nodes = document.querySelectorAll("["+attr+"]");
+      for (var i=0;i<nodes.length;i++){
+        var n = nodes[i], k = n.getAttribute(attr);
+        if (prop === "innerHTML") n.innerHTML = t(k); else n[prop] = t(k);
+      }
+    };
+    one("data-i18n","textContent");
+    one("data-i18n-html","innerHTML");
+    one("data-i18n-title","title");
+    el("paster").placeholder = t("pastePlaceholder");
+    el("gy").placeholder = t("phGy"); el("gx").placeholder = t("phGx");
+    el("ty").placeholder = t("phTy"); el("tx").placeholder = t("phTx");
+    el("langNow").textContent = L.toUpperCase();
+    el("flNow").setAttribute("class","fl fl-" + L);
+    var opts = el("langMenu").querySelectorAll("button");
+    for (var j=0;j<opts.length;j++) opts[j].setAttribute("aria-selected", opts[j].getAttribute("data-lang") === L ? "true" : "false");
+    try{ localStorage.setItem(LKEY, L); }catch(e){}
+    render();
+  }
+
+  /* ---------- parsing ---------- */
+  function num(v){
+    if (v === null || v === undefined) return NaN;
+    var s = String(v).trim().replace(/\s+/g,"");
+    if (!s) return NaN;
+    s = s.replace(/[^0-9,.\-]/g,"");
+    if (s.indexOf(",") > -1 && s.indexOf(".") > -1) s = s.replace(/,/g,"");        // 1,234.5
+    else if (/^-?\d+,\d{1,2}$/.test(s)) s = s.replace(",", ".");                   // 70,10 -> 70.10
+    else s = s.replace(/,/g,".");
+    var n = parseFloat(s);
+    return isFinite(n) ? n : NaN;
+  }
+  function fmt(n, d){
+    var loc = LOC[L] || "en-GB";
+    return n.toLocaleString(loc,{minimumFractionDigits:d,maximumFractionDigits:d});
+  }
+
+  /* ---------- geometry ---------- */
+  function solve(gy,gx,ty,tx){
+    var dYe = (ty-gy)*UNIT;     // μέτρα Βορρά (+ = βορράς)
+    var dXe = (tx-gx)*UNIT;     // μέτρα Ανατολής (+ = ανατολή)
+    var dist = Math.sqrt(dXe*dXe + dYe*dYe);
+    var brg = (Math.atan2(dXe, dYe) * 180/Math.PI + 360) % 360;
+    return { dYe:dYe, dXe:dXe, dist:dist, brg:brg, mil: brg*6400/360 };
+  }
+
+  /* ---------- render ---------- */
+  function render(){
+    var gy=num(inputs.gy.value), gx=num(inputs.gx.value);
+    var ty=num(inputs.ty.value), tx=num(inputs.tx.value);
+    var ok = [gy,gx,ty,tx].every(isFinite);
+
+    if (!ok){
+      el("distN").textContent = "—";
+      el("distExact").textContent = t("distEmpty");
+      el("rangeBadge").innerHTML = "";
+      el("bearDeg").textContent = "—";
+      el("bearCard").textContent = t("bearInit");
+      el("needle").setAttribute("transform","rotate(0)");
+      markRose(-1);
+      el("arc").setAttribute("stroke-dasharray","0 999");
+      ["dY","dX","mil","onlyX","onlyY","diag"].forEach(function(k){ el(k).textContent = "—"; });
+      last = null;
+      draw(null);
+      return;
+    }
+
+    var s = solve(gy,gx,ty,tx);
+    last = { gy:gy, gx:gx, ty:ty, tx:tx, s:s };
+
+    el("distN").textContent = String(Math.round(s.dist));
+    el("distExact").textContent = t("exact", {
+      d: fmt(s.dist,1),
+      u: fmt(Math.sqrt(Math.pow((tx-gx),2)+Math.pow((ty-gy),2)),4)
+    });
+
+    var b = el("rangeBadge"), cls, msg;
+    if (s.dist < MIN_RNG){ cls="bad"; msg=t("badgeNear"); }
+    else if (s.dist > MAX_RNG){ cls="bad"; msg=t("badgeFar"); }
+    else { cls="ok"; msg=t("badgeOk"); }
+    b.innerHTML = '<span class="badge '+cls+'">'+msg+'</span>';
+
+    var sec = sector(s.brg), name = sectorName(sec);
+    el("bearDeg").textContent = fmt(s.brg,1) + "°  " + name;
+    el("bearCard").textContent = t("bearCard", { sec:name, from:fmt(sec.from,1), to:fmt(sec.to,1) });
+    markRose(sec.i);
+    el("needle").setAttribute("transform","rotate("+s.brg.toFixed(2)+")");
+    el("arc").setAttribute("stroke-dasharray", (s.brg*28*Math.PI/180).toFixed(2)+" 999");
+
+    var sign = function(v){ return (v>=0? "+" : "−") + fmt(Math.abs(v),0); };
+    el("dY").textContent = sign(s.dYe) + " m " + t(s.dYe>=0 ? "dirN" : "dirS");
+    el("dX").textContent = sign(s.dXe) + " m " + t(s.dXe>=0 ? "dirE" : "dirW");
+    el("mil").textContent = String(Math.round(s.mil)) + " mil";
+
+    el("onlyX").textContent = fmt(Math.abs(s.dXe),0) + " m";
+    el("onlyY").textContent = fmt(Math.abs(s.dYe),0) + " m";
+    el("diag").textContent   = fmt(s.dist,1) + " m";
+
+    draw(last);
+    save();
+  }
+
+  /* ---------- map ---------- */
+  var cv = el("map"), ctx = cv.getContext("2d");
+  function draw(st){
+    var dpr = window.devicePixelRatio || 1;
+    var w = cv.clientWidth || 480, h = cv.clientHeight || 400;
+    cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,w,h);
+
+    var cx = w/2, cy = h/2;
+    var scale = 0.35, dXe=0, dYe=0, midE=0, midN=0;
+
+    if (st){
+      dXe = st.s.dXe; dYe = st.s.dYe;
+      midE = dXe/2; midN = dYe/2;
+      var needE = Math.max(Math.abs(dXe), 120) * 2.2;
+      var needN = Math.max(Math.abs(dYe), 120) * 2.2;
+      scale = Math.min((w-70)/needE, (h-78)/needN);
+    }
+    var toPx = function(mE,mN){ return [cx + (mE-midE)*scale, cy - (mN-midN)*scale]; };
+
+    // πλέγμα
+    var stepM = 100;
+    while (stepM*scale < 34) stepM *= 2;
+    ctx.lineWidth = 1;
+    var e0 = midE - cx/scale, e1 = midE + cx/scale;
+    var n0 = midN - cy/scale, n1 = midN + cy/scale;
+    for (var e = Math.ceil(e0/stepM)*stepM; e <= e1; e += stepM){
+      var px = toPx(e,0)[0];
+      ctx.strokeStyle = (Math.abs(e) < 1) ? "#39464e" : "#202a30";
+      ctx.beginPath(); ctx.moveTo(px,0); ctx.lineTo(px,h); ctx.stroke();
+    }
+    for (var n = Math.ceil(n0/stepM)*stepM; n <= n1; n += stepM){
+      var py = toPx(0,n)[1];
+      ctx.strokeStyle = (Math.abs(n) < 1) ? "#39464e" : "#202a30";
+      ctx.beginPath(); ctx.moveTo(0,py); ctx.lineTo(w,py); ctx.stroke();
+    }
+
+    ctx.save();
+    if (st){
+      var g = toPx(0,0), tt = toPx(dXe,dYe);
+
+      // εμβέλεια L81 (κύκλοι γύρω από τον όλμο)
+      var rings = [[MIN_RNG,"#5c3a26",[6,5]],[MAX_RNG,"#5c3a26",[]]];
+      ctx.setLineDash([]);
+      for (var i=0;i<rings.length;i++){
+        ctx.beginPath();
+        ctx.arc(g[0], g[1], rings[i][0]*scale, 0, Math.PI*2);
+        ctx.strokeStyle = rings[i][1];
+        ctx.lineWidth = 1;
+        ctx.setLineDash(rings[i][2]);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+
+      // γραμμή βολής
+      ctx.beginPath(); ctx.moveTo(g[0],g[1]); ctx.lineTo(tt[0],tt[1]);
+      ctx.strokeStyle = "#d9a441"; ctx.lineWidth = 2; ctx.setLineDash([7,5]); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // ετικέτα απόστασης στη μέση
+      var mxp = (g[0]+tt[0])/2, myp = (g[1]+tt[1])/2;
+      var txt = Math.round(st.s.dist) + " m";
+      ctx.font = '600 13px ui-monospace, Consolas, monospace';
+      var tw = ctx.measureText(txt).width;
+      ctx.fillStyle = "#0e1215";
+      ctx.fillRect(mxp - tw/2 - 6, myp - 10, tw + 12, 20);
+      ctx.strokeStyle = "#3b4a53"; ctx.lineWidth = 1;
+      ctx.strokeRect(mxp - tw/2 - 6, myp - 10, tw + 12, 20);
+      ctx.fillStyle = "#d9a441"; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+      ctx.fillText(txt, mxp - tw/2, myp + 1);
+      ctx.textBaseline = "alphabetic";
+
+      // στόχος
+      ctx.strokeStyle = "#e0553f"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(tt[0],tt[1],7,0,Math.PI*2); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(tt[0]-13,tt[1]); ctx.lineTo(tt[0]-3,tt[1]);
+      ctx.moveTo(tt[0]+3,tt[1]);  ctx.lineTo(tt[0]+13,tt[1]);
+      ctx.moveTo(tt[0],tt[1]-13); ctx.lineTo(tt[0],tt[1]-3);
+      ctx.moveTo(tt[0],tt[1]+3);  ctx.lineTo(tt[0],tt[1]+13);
+      ctx.stroke();
+
+      // εγώ (τρίγωνο)
+      ctx.fillStyle = "#5fbf7a";
+      ctx.beginPath();
+      ctx.moveTo(g[0],g[1]-9); ctx.lineTo(g[0]+8,g[1]+7); ctx.lineTo(g[0]-8,g[1]+7);
+      ctx.closePath(); ctx.fill();
+
+      ctx.font = '600 11px "Segoe UI", system-ui, sans-serif';
+      ctx.textAlign = "center";
+      ctx.fillText(t("cvMe"), g[0], g[1]+24);
+      ctx.fillStyle = "#e0553f";
+      ctx.fillText(t("cvTarget"), tt[0], tt[1]-22);
+      ctx.textAlign = "left";
+    } else {
+      ctx.font = '13px "Segoe UI", system-ui, sans-serif';
+      ctx.fillStyle = "#6c7c84"; ctx.textAlign = "center";
+      ctx.fillText(t("cvEmpty"), w/2, h/2);
+      ctx.textAlign = "left";
+    }
+
+    // βορράς + κλίμακα
+    ctx.strokeStyle = "#93a3ab"; ctx.fillStyle = "#93a3ab"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(22,h-22); ctx.lineTo(22,h-46); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(22,h-50); ctx.lineTo(18,h-42); ctx.lineTo(26,h-42); ctx.closePath(); ctx.fill();
+    ctx.font = '600 10px ui-monospace, Consolas, monospace';
+    ctx.fillText("N", 18, h-54);
+    ctx.restore();
+
+    ctx.strokeStyle = "#3b4a53"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(w-92,h-22); ctx.lineTo(w-22,h-22); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(w-92,h-26); ctx.lineTo(w-92,h-18); ctx.moveTo(w-22,h-26); ctx.lineTo(w-22,h-18); ctx.stroke();
+    ctx.fillStyle = "#6c7c84";
+    ctx.font = '10px ui-monospace, Consolas, monospace'; ctx.textAlign = "center";
+    ctx.fillText(stepM + " m", w-57, h-28);
+    ctx.textAlign = "left";
+  }
+
+  /* ---------- persistence + events ---------- */
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify({gy:inputs.gy.value,gx:inputs.gx.value,ty:inputs.ty.value,tx:inputs.tx.value})); }catch(e){}
+  }
+  function load(){
+    try{
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return false;
+      var d = JSON.parse(raw);
+      ids.forEach(function(k){ if (d[k]) inputs[k].value = d[k]; });
+      return true;
+    }catch(e){ return false; }
+  }
+
+  ids.forEach(function(k){
+    inputs[k].addEventListener("input", render);
+    inputs[k].addEventListener("keydown", function(ev){
+      if (ev.key === "Enter"){
+        ev.preventDefault();
+        var i = ids.indexOf(k);
+        var next = inputs[ids[(i+1) % ids.length]];
+        next.focus(); next.select();
+      }
+    });
+  });
+
+  el("swap").addEventListener("click", function(){
+    var gy = inputs.gy.value, gx = inputs.gx.value, ty = inputs.ty.value, tx = inputs.tx.value;
+    // Αν το ζευγάρι δόθηκε ανάποδα (X,Y), το swap το διορθώνει: Y<->X σε κάθε σημείο
+    inputs.gy.value = gx; inputs.gx.value = gy;
+    inputs.ty.value = tx; inputs.tx.value = ty;
+    render();
+  });
+
+  el("clear").addEventListener("click", function(){
+    ids.forEach(function(k){ inputs[k].value = ""; });
+    try{ localStorage.removeItem(KEY); }catch(e){}
+    render(); inputs.gy.focus();
+  });
+
+  el("copy").addEventListener("click", function(){
+    if (!last) return;
+    var s = last.s, sec = sector(s.brg);
+    var txt = t("copyHead") + "\n" +
+      t("cMe") + ":     Y " + fmt(last.gy,2) + " / X " + fmt(last.gx,2) + "\n" +
+      t("cTarget") + ": Y " + fmt(last.ty,2) + " / X " + fmt(last.tx,2) + "\n" +
+      t("cDist") + ": " + Math.round(s.dist) + " m\n" +
+      t("cBrg") + ":     " + fmt(s.brg,1) + "° " + sectorName(sec) + "\n" +
+      t("cDelta") + ": " + (s.dYe>=0?"+":"−") + fmt(Math.abs(s.dYe),0) + " m " + t(s.dYe>=0?"dirN":"dirS") + ", " +
+                       (s.dXe>=0?"+":"−") + fmt(Math.abs(s.dXe),0) + " m " + t(s.dXe>=0?"dirE":"dirW");
+    var done = function(){
+      var b = el("copy");
+      b.textContent = t("copied");
+      setTimeout(function(){ b.textContent = t("copy"); }, 1400);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(done, function(){ fallback(txt, done); });
+    } else fallback(txt, done);
+  });
+  function fallback(txt, cb){
+    var ta = document.createElement("textarea");
+    ta.value = txt; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); cb(); }catch(e){}
+    document.body.removeChild(ta);
+  }
+
+  /* ---------- paste parser ---------- */
+  function parseList(text){
+    var out = [];
+    var re = /-?\d+[.,]?\d*/g, m;
+    while ((m = re.exec(text)) !== null){
+      var v = num(m[0]);
+      if (isFinite(v)) out.push(v);
+    }
+    return out;
+  }
+  function fillFrom(txt, target){
+    var v = parseList(txt);
+    if (v.length < 2){ el("pmsg").textContent = t("parseFail"); return; }
+    var a = v[0].toFixed(2), b = v[1].toFixed(2);
+    // Στο παιχνίδι η σειρά είναι X πρώτα, Y μετά. Αν ο πρώτος είναι μικρός και ο δεύτερος >130, μάλλον τα έδωσε Y,X.
+    if (v[0] <= 130 && v[1] > 130){ var tmp=a; a=b; b=tmp; }
+    if (target){ inputs.tx.value = a; inputs.ty.value = b; }
+    else { inputs.gx.value = a; inputs.gy.value = b; }
+    el("pmsg").textContent = t(target ? "placedTarget" : "placedMe", { x:a, y:b }) +
+      (v.length >= 4 ? t("extraNums", { n:String(v.length-2) }) : "");
+    render();
+  }
+  el("pme").addEventListener("click", function(){ fillFrom(el("paster").value, false); });
+  el("ptg").addEventListener("click", function(){ fillFrom(el("paster").value, true); });
+  el("paster").addEventListener("keydown", function(ev){
+    if (ev.key === "Enter" && (ev.ctrlKey || ev.metaKey)){ ev.preventDefault(); fillFrom(el("paster").value, false); }
+  });
+
+  /* ---------- language menu ---------- */
+  var lbtn = el("langBtn"), lmenu = el("langMenu");
+  function openMenu(open){
+    lmenu.hidden = !open;
+    lbtn.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+  lbtn.addEventListener("click", function(ev){ ev.stopPropagation(); openMenu(lmenu.hidden); });
+  lmenu.addEventListener("click", function(ev){
+    var b = ev.target && ev.target.closest ? ev.target.closest("button[data-lang]") : null;
+    if (b){ applyLang(b.getAttribute("data-lang")); openMenu(false); lbtn.focus(); }
+  });
+  document.addEventListener("click", function(ev){
+    if (!lmenu.hidden && !lmenu.contains(ev.target) && ev.target !== lbtn && !lbtn.contains(ev.target)) openMenu(false);
+  });
+  document.addEventListener("keydown", function(ev){ if (ev.key === "Escape") openMenu(false); });
+
+  window.addEventListener("resize", function(){ draw(last); });
+
+  /* ---------- start ---------- */
+  if (!load()){
+    // παράδειγμα για άμεσο έλεγχο
+    inputs.gy.value = "66.80"; inputs.gx.value = "79.44";
+    inputs.ty.value = "70.10"; inputs.tx.value = "77.17";
+  }
+  var saved = null;
+  try{ saved = localStorage.getItem(LKEY); }catch(e){}
+  applyLang(saved || "en");     // βασική σελίδα: αγγλικά
+})();
+</script>
+</body>
+</html>
